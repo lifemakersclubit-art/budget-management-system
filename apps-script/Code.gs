@@ -441,13 +441,26 @@ var EmailService = (function() {
     try {
       var request = Database.getRequest(requestId);
       if (!request) throw new Error('Request not found: '+requestId);
-      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - رد';
-      var plainBody = 'رد على الطلب '+requestId+'\n\n'+replyBody;
-      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;"><div style="background:linear-gradient(135deg,#34a853,#0f9d58);color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">رد على طلب '+requestId+'</h1></div><div style="padding:25px;"><div style="background:#f8f9fa;border-right:4px solid #34a853;padding:15px;margin:15px 0;border-radius:4px;"><p style="margin:0;color:#202124;line-height:1.6;">'+esc(replyBody)+'</p></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
+      var requesterEmail = request['Requester Email'] || '';
+      var requesterName = request['Requester Name'] || '';
+      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - رد على طلبك';
+      var plainBody = 'مرحبا '+requesterName+'\n\nرد على طلبك رقم '+requestId+':\n\n'+replyBody+'\n\nفتح الجدول: https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
+      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg,#014976,#016199);color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">رد على طلبك '+requestId+'</h1></div><div style="padding:25px;"><div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div><div style="background:#f8f9fa;border-right:4px solid #FBAE42;padding:15px;margin:15px 0;border-radius:4px;"><p style="margin:0;color:#202124;line-height:1.8;font-size:15px;">'+esc(replyBody)+'</p></div><div style="text-align:center;margin-top:20px;"><a href="https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">عرض التفاصيل</a></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
       var opts = { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME };
-      if (threadId) { var thread = GmailApp.getThreadById(threadId); if (thread) { thread.reply(plainBody, opts); Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.FORWARDED, 'Reply forwarded', CONFIG.EMAIL.ADMIN, '', ''); return true; } }
-      GmailApp.sendEmail(request['Requester Email'], subject, plainBody, opts);
-      Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.FORWARDED, 'Reply sent to '+request['Requester Email'], CONFIG.EMAIL.ADMIN, '', '');
+
+      var recipients = [];
+      if (requesterEmail) recipients.push(requesterEmail);
+      recipients.push(CONFIG.EMAIL.WATCHER_1);
+      recipients.push(CONFIG.EMAIL.WATCHER_2);
+
+      var uniqueRecipients = [];
+      recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
+
+      uniqueRecipients.forEach(function(email) {
+        try { GmailApp.sendEmail(email, subject, plainBody, opts); } catch(e) { Logger.log('Reply email to '+email+' error: '+e.toString()); }
+      });
+
+      Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply sent to: '+uniqueRecipients.join(', '), CONFIG.EMAIL.ADMIN, replyBody, '');
       return true;
     } catch(e) { Logger.log('Reply email error: '+e.toString()); throw e; }
   }
@@ -611,6 +624,7 @@ function doGet(e) {
         if (!data.requestId||!data.replyBody) return Utils.createErrorResponse('Missing fields');
         var reqR = Database.getRequest(data.requestId);
         if (!reqR) return Utils.createErrorResponse('Not found');
+        Database.saveReply({ requestId: data.requestId, body: data.replyBody, from: CONFIG.EMAIL.ADMIN, timestamp: new Date().toISOString() });
         EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']);
         var srToken = Validation.generateCSRFToken();
         return Utils.createSuccessResponse({ csrfToken: srToken });
@@ -694,6 +708,7 @@ function doPost(e) {
         if (!data.requestId||!data.replyBody) return Utils.createSuccessResponse(null, 'Missing fields');
         var reqR = Database.getRequest(data.requestId);
         if (!reqR) return Utils.createSuccessResponse(null, 'Not found');
+        Database.saveReply({ requestId: data.requestId, body: data.replyBody, from: CONFIG.EMAIL.ADMIN, timestamp: new Date().toISOString() });
         EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']);
         var nt2 = Validation.generateCSRFToken();
         return Utils.createSuccessResponse({ csrfToken: nt2 });
