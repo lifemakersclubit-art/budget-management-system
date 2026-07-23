@@ -443,9 +443,16 @@ var EmailService = (function() {
       if (!request) throw new Error('Request not found: '+requestId);
       var requesterEmail = request['Requester Email'] || '';
       var requesterName = request['Requester Name'] || '';
-      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - رد على طلبك';
-      var plainBody = 'مرحبا '+requesterName+'\n\nرد على طلبك رقم '+requestId+':\n\n'+replyBody+'\n\nفتح الجدول: https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
-      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg,#014976,#016199);color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">رد على طلبك '+requestId+'</h1></div><div style="padding:25px;"><div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div><div style="background:#f8f9fa;border-right:4px solid #FBAE42;padding:15px;margin:15px 0;border-radius:4px;"><p style="margin:0;color:#202124;line-height:1.8;font-size:15px;">'+esc(replyBody)+'</p></div><div style="text-align:center;margin-top:20px;"><a href="https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">عرض التفاصيل</a></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
+      var requestStatus = request['Status'] || 'New';
+      var requestType = request['Request Type'] || '';
+      var sector = request['Sector'] || '';
+      var statusLabels = { 'New':'جديد', 'Under Review':'قيد المراجعة', 'Approved':'معتمد', 'Rejected':'مرفوض', 'Completed':'مكتمل' };
+      var statusArabic = statusLabels[requestStatus] || requestStatus;
+      var statusColors = { 'New':'#3498DB', 'Under Review':'#F39C12', 'Approved':'#2ECC71', 'Rejected':'#E74C3C', 'Completed':'#2ECC71' };
+      var statusColor = statusColors[requestStatus] || '#3498DB';
+      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - رد على طلبك ['+statusArabic+']';
+      var plainBody = 'مرحبا '+requesterName+'\n\nرد على طلبك رقم '+requestId+'\nالحالة: '+statusArabic+'\n\n'+replyBody+'\n\nفتح الجدول: https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
+      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg,#014976,#016199);color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">رد على طلبك '+requestId+'</h1></div><div style="padding:25px;"><div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div><div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;"><div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">نوع الطلب</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(requestType)+'</div></div><div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">القطاع</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(sector)+'</div></div></div><div style="text-align:center;margin-bottom:20px;"><span style="display:inline-block;background:'+statusColor+';color:white;padding:6px 20px;border-radius:20px;font-size:13px;font-weight:bold;">الحالة: '+statusArabic+'</span></div><div style="background:#f8f9fa;border-right:4px solid #FBAE42;padding:15px;margin:15px 0;border-radius:4px;"><div style="font-size:12px;color:#5f6368;margin-bottom:6px;font-weight:bold;">الرد:</div><p style="margin:0;color:#202124;line-height:1.8;font-size:15px;">'+esc(replyBody)+'</p></div><div style="text-align:center;margin-top:20px;"><a href="https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">عرض التفاصيل</a></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
       var opts = { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME };
 
       var recipients = [];
@@ -516,14 +523,28 @@ var ReplyService = (function() {
     try {
       var request = Database.getRequest(requestId);
       if (!request) return;
-      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - تحديث الحالة';
-      var plainBody = 'تم تحديث حالة الطلب '+requestId+' إلى: '+newStatus;
+      var requesterEmail = request['Requester Email'] || '';
+      var requesterName = request['Requester Name'] || '';
+      var requestType = request['Request Type'] || '';
+      var statusLabels = {'New':'جديد','Under Review':'قيد المراجعة','Approved':'معتمد','Rejected':'مرفوض','Completed':'مكتمل'};
+      var statusArabic = statusLabels[newStatus] || newStatus;
       var colors = {'New':'#4285f4','Under Review':'#FBAE42','Approved':'#34a853','Rejected':'#ea4335','Completed':'#34a853'};
       var color = colors[newStatus]||'#5f6368';
-      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;"><div style="background:'+color+';color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;"> تحديث حالة الطلب</h1><p>'+requestId+'</p></div><div style="padding:25px;text-align:center;"><p>تم تحديث حالة طلبك إلى:</p><span style="display:inline-block;background:'+color+';color:white;padding:10px 25px;border-radius:25px;font-size:16px;font-weight:bold;">'+newStatus+'</span></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
-      var threadId = request['Thread ID'];
-      if (threadId) { var thread = GmailApp.getThreadById(threadId); if (thread) { thread.reply(plainBody, {htmlBody:htmlBody, name:CONFIG.EMAIL.FROM_NAME}); return; } }
-      GmailApp.sendEmail(request['Requester Email'], subject, plainBody, {htmlBody:htmlBody, name:CONFIG.EMAIL.FROM_NAME});
+      var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - تحديث الحالة ['+statusArabic+']';
+      var plainBody = 'مرحبا '+requesterName+'\n\nتم تحديث حالة طلبك رقم '+requestId+'\nنوع الطلب: '+requestType+'\nالحالة الجديدة: '+statusArabic+'\n\nفتح الجدول: https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
+      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);"><div style="background:'+color+';color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">تحديث حالة طلبك</h1><p style="margin-top:8px;opacity:0.9;">'+requestId+'</p></div><div style="padding:25px;"><div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div><div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;margin-bottom:15px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">نوع الطلب</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(requestType)+'</div></div><p style="text-align:center;margin-bottom:15px;color:#5f6368;">تم تحديث حالة طلبك إلى:</p><div style="text-align:center;margin-bottom:20px;"><span style="display:inline-block;background:'+color+';color:white;padding:8px 28px;border-radius:25px;font-size:16px;font-weight:bold;">'+statusArabic+'</span></div><div style="text-align:center;"><a href="https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">عرض التفاصيل</a></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
+      var opts = { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME };
+
+      var recipients = [];
+      if (requesterEmail) recipients.push(requesterEmail);
+      recipients.push(CONFIG.EMAIL.WATCHER_1);
+      recipients.push(CONFIG.EMAIL.WATCHER_2);
+      var uniqueRecipients = [];
+      recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
+
+      uniqueRecipients.forEach(function(email) {
+        try { GmailApp.sendEmail(email, subject, plainBody, opts); } catch(e) { Logger.log('Status email to '+email+' error: '+e.toString()); }
+      });
     } catch(e) { Logger.log('Status update email error: '+e.toString()); }
   }
 
