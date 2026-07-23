@@ -261,6 +261,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
             </div>
             <div class="form-group"><label class="form-label" for="sector">القطاع</label><select id="sector" name="sector" class="form-select" required><option value="">اختر القطاع</option></select></div>
             <div class="form-group"><label class="form-label" for="governorate">المحافظة</label><select id="governorate" name="governorate" class="form-select" required><option value="">اختر المحافظة</option></select></div>
+            <div class="form-group"><label class="form-label" for="university">الجامعة</label><select id="university" name="university" class="form-select"><option value="">اختر الجامعة</option></select></div>
             <div class="form-group full-width"><label class="form-label" for="notes">الملاحظات</label><textarea id="notes" name="notes" class="form-textarea" rows="3" placeholder="أي ملاحظات إضافية..."></textarea></div>
             <div class="form-group full-width">
               <label class="form-label">هل تم التبليغ بهذا الاحتياج للمشرف الإداري؟</label>
@@ -397,6 +398,7 @@ var FALLBACK_CONFIG = {
   statuses: { NEW: 'New', UNDER_REVIEW: 'Under Review', APPROVED: 'Approved', REJECTED: 'Rejected', COMPLETED: 'Completed' },
   sectors: ['اللجان المركزية','التوسع','التفعيل','قطاع بحري','قطاع الجنوب 1','قطاع الجنوب 2','قطاع شمال الصعيد','قطاع القاهرة الكبري','قطاع القناة'],
   governorates: ['القاهرة','الأسكندرية','بورسعيد','السويس','دمياط','الدقهلية','الشرقية','القليوبية','كفر الشيخ','الغربية','المنوفية','البحيرة','الإسماعيلية','الجيزة','بنى سويف','الفيوم','المنيا','أسيوط','سوهاج','قنا','أسوان','الأقصر','البحر الأحمر','الوادي الجديد','مطروح','شمال سيناء','جنوب سيناء'],
+  universities: ['جامعة القاهرة','جامعة المنصورة','جامعة السويس','جامعة قناة السويس','جامعة بنها','جامعة الأزهر بالقاهرة','جامعة MTI','جامعة المنيا','جامعة بني سويف','جامعة أسيوط','جامعة أسوان','جامعة قنا','جامعة سوهاج','جامعة المعهد العاشر فرع مطروح','جامعة المعهد العاشر','جامعة المنوفية','جامعة طنطا','جامعة طيبة التكنولوجية','جامعة Sphinx','جامعة الأقصر الحكومية','جامعة الأقصر الأهلية','جامعة سيناء','جامعة العريش','جامعة EST','جامعة مطروح','جامعة الوادى الجديد','جامعة تفهنا فرع الأزهر','جامعة الأقصر فرع الأزهر','معهد القاهرة العالى الجديد','جامعة اللوتس','المعهد التكنولوچى العالى للعلوم التطبيقية','المعهد العالى للخدمة الإجتماعية باسوان','جامعة الأهرام الكندية','المعهد العالي للهندسة بالأقصر','جامعة المنوفية الأهلية','جامعة المنصورة الاهلية','جامعة الزقازيق','جامعة ميريت'],
   committees: ['Media','HR','PR','Training','Activation','IT','Attraction'],
   expenseItems: ['إيفنت','مطبوعات','جيفتات','استقبال','لوجستيك','قاعات','Other'],
   colors: {}
@@ -503,9 +505,10 @@ function applyFallback() {
 }
 
 function populateDropdowns(config) {
-  var s=document.getElementById('sector'), g=document.getElementById('governorate'), c=document.getElementById('committee');
+  var s=document.getElementById('sector'), g=document.getElementById('governorate'), u=document.getElementById('university'), c=document.getElementById('committee');
   config.sectors.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o); });
   config.governorates.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;g.appendChild(o); });
+  if(config.universities){config.universities.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;u.appendChild(o); });}
   config.committees.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;c.appendChild(o); });
   loadCSRFToken();
 }
@@ -549,7 +552,7 @@ function submitRequest() {
   var rt=fd.get('requestType');
   if(!rt){showToast('يرجى اختيار نوع الطلب','error');return;}
 
-  var data={ action:'submitRequest', csrfToken:appState.csrfToken, requestType:rt, sector:fd.get('sector'), governorate:fd.get('governorate'), notes:fd.get('notes'), notifiedAdmin:fd.get('notifiedAdmin')==='true', requesterName:fd.get('requesterName'), requesterEmail:fd.get('requesterEmail'), requesterPhone:fd.get('requesterPhone') };
+  var data={ action:'submitRequest', csrfToken:appState.csrfToken, requestType:rt, sector:fd.get('sector'), governorate:fd.get('governorate'), university:fd.get('university'), notes:fd.get('notes'), notifiedAdmin:fd.get('notifiedAdmin')==='true', requesterName:fd.get('requesterName'), requesterEmail:fd.get('requesterEmail'), requesterPhone:fd.get('requesterPhone') };
 
   if(rt==='ميزانية شهرية'){ data.budgetMonth=fd.get('budgetMonth');data.amount=fd.get('amount');data.deadline=fd.get('deadline');data.notifiedCoordinator=fd.get('notifiedCoordinator')==='true';data.transferNumber=fd.get('transferNumber');data.items=getMonthlyItems(); }
   else if(rt==='ميزانية عاجلة'){ data.submissionDate=fd.get('submissionDate');data.activityName=fd.get('activityName');data.amount=fd.get('amount');data.transferNumber=fd.get('transferNumber');data.items=getUrgentItems(); }
