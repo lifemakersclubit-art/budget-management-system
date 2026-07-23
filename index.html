@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+:root {
+  --navy:#014976;--navy-deep:#003050;--navy-light:#016199;
+  --amber:#FBAE42;--amber-light:#FFD076;--amber-dark:#E09830;
+  --offwhite:#F4F3EF;--cream:#FAF9F6;--white:#FFFFFF;
+  --success:#2ECC71;--success-bg:#E8FAF0;--warning:#F39C12;--warning-bg:#FEF5E7;
+  --danger:#E74C3C;--danger-bg:#FDECEB;--info:#3498DB;--info-bg:#EBF5FB;
+  --text-primary:#0D1B2A;--text-secondary:#415A77;--text-muted:#778DA9;
+  --text-on-navy:#E0EFFF;--text-on-amber:#1B1105;
+  --border-light:rgba(1,73,118,0.08);--border-medium:rgba(1,73,118,0.15);
+  --shadow-sm:0 1px 3px rgba(1,73,118,0.06),0 1px 2px rgba(1,73,118,0.04);
+  --shadow-md:0 4px 12px rgba(1,73,118,0.08),0 2px 4px rgba(1,73,118,0.04);
+  --shadow-lg:0 12px 40px rgba(1,73,118,0.12),0 4px 12px rgba(1,73,118,0.06);
+  --shadow-xl:0 24px 60px rgba(1,73,118,0.16),0 8px 20px rgba(1,73,118,0.08);
+  --shadow-amber:0 4px 20px rgba(251,174,66,0.3);--shadow-navy:0 8px 30px rgba(1,73,118,0.2);
+  --font-display:'Outfit',sans-serif;--font-body:'Almarai',sans-serif;
+  --radius-sm:6px;--radius-md:10px;--radius-lg:16px;--radius-xl:24px;--radius-pill:100px;
+  --space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:40px;--space-2xl:64px;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);--ease-bounce:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth:cubic-bezier(0.4,0,0.2,1);--duration-fast:150ms;--duration-base:300ms;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--offwhite);color:var(--text-primary);line-height:1.7;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--navy);display:flex;justify-content:center;align-items:center;z-index:9999}
+.loader{text-align:center}
+.spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--amber);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader p{color:var(--text-on-navy);font-family:var(--font-display);font-weight:500;font-size:14px;letter-spacing:0.5px;opacity:0.7}
+
+.toast-container{position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:10px}
+.toast{background:var(--white);padding:16px 24px;border-radius:var(--radius-md);box-shadow:var(--shadow-xl);display:flex;align-items:center;gap:12px;min-width:320px;max-width:500px;animation:toastSlideIn 0.4s var(--ease-out);border:1px solid var(--border-light);position:relative;overflow:hidden}
+.toast::before{content:'';position:absolute;top:0;right:0;width:4px;height:100%}
+.toast.success::before{background:var(--success)}.toast.error::before{background:var(--danger)}.toast.warning::before{background:var(--warning)}.toast.info::before{background:var(--navy)}
+.toast-icon{font-size:22px}.toast.success .toast-icon{color:var(--success)}.toast.error .toast-icon{color:var(--danger)}.toast.warning .toast-icon{color:var(--warning)}.toast.info .toast-icon{color:var(--navy)}
+.toast-message{flex:1;font-size:14px;font-weight:500;color:var(--text-primary)}
+.toast-close{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:var(--radius-sm);transition:all var(--duration-fast) var(--ease-smooth)}
+.toast-close:hover{background:rgba(1,73,118,0.04);color:var(--text-primary)}
+@keyframes toastSlideIn{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.header{background:var(--navy);position:sticky;top:0;z-index:100;overflow:hidden}
+.header::before{content:'';position:absolute;top:-30px;right:-30px;width:200px;height:200px;background:var(--amber);opacity:0.08;border-radius:50%;pointer-events:none}
+.header-content{max-width:1400px;margin:0 auto;padding:0 var(--space-xl);display:flex;justify-content:space-between;align-items:center;height:72px;position:relative;z-index:1}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:42px;height:42px;background:var(--amber);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.logo-icon::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.2) 50%,transparent 60%);animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-100%) translateY(-100%)}100%{transform:translateX(100%) translateY(100%)}}
+.logo-icon .material-icons{font-size:22px;color:var(--navy-deep);position:relative;z-index:1}
+.logo h1{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--white);letter-spacing:-0.3px}
+.logo .subtitle{font-size:11px;color:var(--text-on-navy);opacity:0.6;font-weight:400;margin-top:1px}
+
+.nav{display:flex;gap:6px;background:rgba(255,255,255,0.06);padding:5px;border-radius:var(--radius-lg)}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:10px 22px;border:none;background:transparent;border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-on-navy);opacity:0.65;transition:all var(--duration-base) var(--ease-out)}
+.nav-btn:hover{opacity:0.9;background:rgba(255,255,255,0.08)}
+.nav-btn.active{background:var(--amber);color:var(--navy-deep);opacity:1;box-shadow:var(--shadow-amber)}
+.nav-btn .material-icons{font-size:18px}
+
+.progress-bar{height:3px;background:var(--border-light);position:fixed;top:72px;left:0;right:0;z-index:99;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-light),var(--amber));width:0%;transition:width 0.4s var(--ease-out);position:relative}
+.progress-fill::after{content:'';position:absolute;top:0;right:0;width:60px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent);animation:progressShine 1.2s ease-in-out infinite}
+@keyframes progressShine{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+
+.app{min-height:100vh;position:relative;z-index:1}
+.page{display:none;padding:var(--space-xl) var(--space-xl) var(--space-2xl);max-width:1400px;margin:0 auto;animation:pageReveal 0.6s var(--ease-out)}
+.page.active{display:block}
+@keyframes pageReveal{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.container{width:100%}
+
+.card{background:var(--white);border-radius:var(--radius-xl);box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--border-light);position:relative}
+.card::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--navy),var(--amber));border-radius:var(--radius-xl) var(--radius-xl) 0 0}
+.card-header{padding:var(--space-lg) var(--space-xl);border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-md)}
+.card-header h2{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-deep);letter-spacing:-0.5px}
+.card-header p{color:var(--text-muted);font-size:14px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-lg);margin-bottom:var(--space-xl)}
+.stat-card{background:var(--white);border-radius:var(--radius-xl);padding:var(--space-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border-light);display:flex;align-items:center;gap:var(--space-lg);transition:all var(--duration-base) var(--ease-out);position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--border-medium)}
+.stat-icon{width:56px;height:56px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon .material-icons{font-size:26px;color:white}
+.stat-icon.navy{background:linear-gradient(135deg,var(--navy),var(--navy-light))}
+.stat-icon.amber{background:linear-gradient(135deg,var(--amber-dark),var(--amber))}
+.stat-icon.green{background:linear-gradient(135deg,#27AE60,#2ECC71)}
+.stat-icon.red{background:linear-gradient(135deg,#C0392B,#E74C3C)}
+.stat-icon.purple{background:linear-gradient(135deg,#6C3483,#8E44AD)}
+.stat-info h3{font-family:var(--font-display);font-size:30px;font-weight:800;color:var(--navy-deep);line-height:1.1;letter-spacing:-1px}
+.stat-info p{color:var(--text-muted);font-size:13px;font-weight:600;margin-top:4px}
+
+.form{padding:var(--space-xl)}
+.form-section{margin-bottom:var(--space-xl);padding-bottom:var(--space-xl);border-bottom:1px solid var(--border-light);position:relative}
+.form-section:last-of-type{border-bottom:none;margin-bottom:0}
+.section-title{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--navy);margin-bottom:var(--space-lg);position:relative}
+.section-title::after{content:'';position:absolute;bottom:-12px;right:0;width:48px;height:3px;background:var(--amber);border-radius:2px}
+.section-title .material-icons{font-size:22px;color:var(--amber);background:rgba(251,174,66,0.1);width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-md)}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-lg) var(--space-xl)}
+.form-group{display:flex;flex-direction:column;gap:8px}
+.form-group.full-width{grid-column:span 2}
+.form-label{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px}
+.form-input,.form-select,.form-textarea{padding:14px 18px;border:2px solid var(--border-light);border-radius:var(--radius-md);font-family:var(--font-body);font-size:15px;color:var(--text-primary);background:var(--cream);transition:all var(--duration-base) var(--ease-out);width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--navy);background:var(--white);box-shadow:0 0 0 4px rgba(1,73,118,0.08)}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--text-muted)}
+.form-textarea{resize:vertical;min-height:110px;line-height:1.7}
+.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23415A77' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 18px center;padding-left:42px}
+
+.radio-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.radio-group.horizontal{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.radio-card{display:flex;align-items:center;gap:12px;padding:16px 18px;border:2px solid var(--border-light);border-radius:var(--radius-md);cursor:pointer;transition:all var(--duration-base) var(--ease-out);background:var(--cream);position:relative}
+.radio-card:hover{border-color:var(--navy);background:var(--white)}
+.radio-card input{display:none}
+.radio-card input:checked~.radio-custom{background:var(--navy);border-color:var(--navy)}
+.radio-card input:checked~.radio-custom::after{transform:scale(1)}
+.radio-card input:checked~.radio-content{color:var(--navy);font-weight:700}
+.radio-card:has(input:checked){border-color:var(--navy);background:rgba(1,73,118,0.04)}
+.radio-card.small{padding:12px 16px}
+.radio-custom{width:20px;height:20px;border:2px solid var(--border-medium);border-radius:50%;position:relative;flex-shrink:0;transition:all var(--duration-fast) var(--ease-out)}
+.radio-custom::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:10px;height:10px;background:white;border-radius:50%;transition:transform var(--duration-fast) var(--ease-bounce)}
+.radio-content{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text-secondary);transition:color var(--duration-fast)}
+.radio-content .material-icons{font-size:20px;color:var(--amber)}
+
+.input-with-icon{position:relative}
+.input-with-icon .form-input{padding-left:56px}
+.input-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-family:var(--font-display);font-size:13px;font-weight:700;background:rgba(1,73,118,0.06);padding:4px 10px;border-radius:var(--radius-sm)}
+
+.table-container{overflow-x:auto}
+.table-header{display:flex;justify-content:space-between;align-items:center;padding:var(--space-md) var(--space-xl);border-bottom:1px solid var(--border-light)}
+.table-header h4{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{background:rgba(1,73,118,0.04);padding:14px 18px;text-align:right;font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border-light)}
+.data-table td{padding:14px 18px;border-bottom:1px solid var(--border-light);font-size:14px}
+.data-table tbody tr{transition:background var(--duration-fast)}
+.data-table tbody tr:hover{background:rgba(1,73,118,0.02)}
+.data-table tfoot td{background:var(--navy);color:var(--white);font-weight:700;font-family:var(--font-display)}
+.text-left{text-align:left !important}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border:none;border-radius:var(--radius-md);font-family:var(--font-display);font-size:14px;font-weight:700;cursor:pointer;transition:all var(--duration-base) var(--ease-out);position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.2);border-radius:50%;transition:width 0.4s,height 0.4s,top 0.4s,left 0.4s}
+.btn:active::after{width:200px;height:200px;top:calc(50% - 100px);left:calc(50% - 100px)}
+.btn-primary{background:var(--navy);color:var(--white)}
+.btn-primary:hover{background:var(--navy-light);box-shadow:var(--shadow-navy);transform:translateY(-1px)}
+.btn-secondary{background:var(--cream);color:var(--text-primary);border:1px solid var(--border-medium)}
+.btn-secondary:hover{background:var(--white);border-color:var(--navy)}
+.btn-amber{background:var(--amber);color:var(--navy-deep)}
+.btn-amber:hover{background:var(--amber-dark);box-shadow:var(--shadow-amber);transform:translateY(-1px)}
+.btn-danger{background:var(--danger);color:var(--white)}
+.btn-danger:hover{background:#C0392B;transform:translateY(-1px)}
+.btn-sm{padding:8px 16px;font-size:12px;border-radius:var(--radius-sm)}
+.btn-lg{padding:16px 44px;font-size:16px;border-radius:var(--radius-lg)}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none !important}
+.form-actions{display:flex;justify-content:center;padding-top:var(--space-xl)}
+
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:var(--radius-pill);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.2px}
+.status-badge.new{background:var(--info-bg);color:var(--info)}.status-badge.under-review{background:var(--warning-bg);color:var(--warning)}.status-badge.approved{background:var(--success-bg);color:var(--success)}.status-badge.rejected{background:var(--danger-bg);color:var(--danger)}.status-badge.completed{background:var(--success-bg);color:var(--success)}
+.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+
+.filters{display:flex;gap:12px;flex-wrap:wrap}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--cream);padding:10px 18px;border-radius:var(--radius-md);border:2px solid var(--border-light);transition:all var(--duration-base) var(--ease-out)}
+.search-box:focus-within{border-color:var(--navy);background:var(--white)}
+.search-box input{border:none;background:transparent;outline:none;font-family:var(--font-body);font-size:14px;width:200px;color:var(--text-primary)}
+.search-box .material-icons{color:var(--text-muted);font-size:20px}
+
+.pagination{display:flex;justify-content:center;align-items:center;gap:6px;padding:var(--space-lg)}
+.pagination-btn{padding:8px 14px;border:1px solid var(--border-light);background:var(--white);border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-secondary);transition:all var(--duration-fast) var(--ease-out)}
+.pagination-btn:hover:not(:disabled){background:var(--navy);color:var(--white);border-color:var(--navy)}
+.pagination-btn.active{background:var(--amber);color:var(--navy-deep);border-color:var(--amber)}
+.pagination-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000}
+.modal.active{display:flex;justify-content:center;align-items:center;animation:modalFadeIn 0.3s var(--ease-out)}
+@keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
+.modal-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,48,80,0.6);backdrop-filter:blur(6px)}
+.modal-content{position:relative;background:var(--white);border-radius:var(--radius-xl);width:92%;max-width:840px;max-height:90vh;overflow:hidden;box-shadow:var(--shadow-xl);animation:modalSlideUp 0.4s var(--ease-out)}
+@keyframes modalSlideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:var(--space-lg) var(--space-xl);border-bottom:1px solid var(--border-light);background:var(--navy)}
+.modal-header h2{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--white)}
+.modal-close{background:rgba(255,255,255,0.15);border:none;cursor:pointer;color:var(--white);padding:8px;border-radius:var(--radius-sm);transition:all var(--duration-fast)}
+.modal-close:hover{background:rgba(255,255,255,0.25)}
+.modal-body{padding:var(--space-xl);overflow-y:auto;max-height:calc(90vh - 80px)}
+
+.detail-section{margin-bottom:var(--space-xl)}
+.detail-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--navy);margin-bottom:var(--space-md);padding-bottom:var(--space-sm);border-bottom:2px solid var(--amber);display:inline-block}
+.detail-content{display:flex;flex-direction:column;gap:var(--space-md)}
+.detail-item{display:flex;flex-direction:column;gap:4px}
+.detail-label{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
+.detail-value{font-size:14px;color:var(--text-primary);font-weight:500}
+
+.status-update-form{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.status-update-form .form-select{flex:1;min-width:200px}
+
+.workflow-timeline{position:relative;padding-right:28px}
+.workflow-timeline::before{content:'';position:absolute;top:0;right:10px;width:2px;height:100%;background:var(--border-light)}
+.timeline-item{position:relative;padding-bottom:var(--space-lg);padding-right:var(--space-xl)}
+.timeline-icon{position:absolute;right:-22px;top:0;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--white);box-shadow:var(--shadow-sm)}
+.timeline-icon .material-icons{font-size:12px;color:white}
+.timeline-icon.blue{background:var(--navy)}.timeline-icon.green{background:var(--success)}.timeline-icon.yellow{background:var(--amber)}.timeline-icon.red{background:var(--danger)}.timeline-icon.purple{background:#8E44AD}
+.timeline-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.timeline-header strong{font-family:var(--font-display);font-size:13px;color:var(--text-primary)}
+.timeline-date{font-size:11px;color:var(--text-muted)}
+.timeline-details{font-size:13px;color:var(--text-secondary);line-height:1.5}
+
+.hidden{display:none !important}
+
+.btn-loading .btn-text{opacity:0}.btn-loading .btn-spinner{display:block}
+.btn-spinner{display:none;width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:currentColor;border-radius:50%;animation:spin 0.6s linear infinite;position:absolute}
+
+.skeleton{background:linear-gradient(90deg,var(--border-light) 25%,rgba(1,73,118,0.06) 50%,var(--border-light) 75%);background-size:200% 100%;animation:skeletonPulse 1.5s ease-in-out infinite;border-radius:var(--radius-md)}
+@keyframes skeletonPulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.stagger>*{opacity:0;transform:translateY(20px);animation:staggerIn 0.5s var(--ease-out) forwards}
+.stagger>*:nth-child(1){animation-delay:0.05s}.stagger>*:nth-child(2){animation-delay:0.1s}.stagger>*:nth-child(3){animation-delay:0.15s}.stagger>*:nth-child(4){animation-delay:0.2s}.stagger>*:nth-child(5){animation-delay:0.25s}.stagger>*:nth-child(6){animation-delay:0.3s}
+@keyframes staggerIn{to{opacity:1;transform:translateY(0)}}
+
+.password-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:5000;display:flex;justify-content:center;align-items:center}
+.password-card{background:var(--white);border-radius:var(--radius-xl);padding:var(--space-2xl);width:420px;max-width:90vw;text-align:center;box-shadow:var(--shadow-xl);border:1px solid var(--border-light)}
+.password-card .lock-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:var(--shadow-navy)}
+.password-card .lock-icon .material-icons{font-size:36px;color:var(--amber)}
+.password-card h2{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-deep);margin-bottom:8px}
+.password-card p{color:var(--text-muted);font-size:14px;margin-bottom:24px}
+.password-card .error-msg{color:var(--danger);font-size:13px;margin-top:8px;min-height:20px}
+
+.table-skeleton td{padding:16px 18px}
+.table-skeleton .sk-line{height:16px;border-radius:4px}
+.table-skeleton .sk-badge{height:26px;border-radius:100px;width:80px}
+.table-skeleton .sk-btn{height:32px;border-radius:var(--radius-sm);width:70px}
+
+@keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalSlideUp{from{transform:translateY(30px) scale(0.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastSlideIn{from{transform:translateY(-30px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastSlideOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-20px)}}
+
+.toast{animation:toastSlideIn 0.4s var(--ease-out)}
+.toast.removing{animation:toastSlideOut 0.3s var(--ease-out) forwards}
+
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.25);border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:none}
+.btn:active::before{width:200px;height:200px;opacity:0;transition:width 0.5s,height 0.5s,opacity 0.5s}
+
+.stat-card{animation:cardFloat 0.5s var(--ease-out) backwards}
+.stat-card:nth-child(1){animation-delay:0s}.stat-card:nth-child(2){animation-delay:0.08s}.stat-card:nth-child(3){animation-delay:0.16s}.stat-card:nth-child(4){animation-delay:0.24s}.stat-card:nth-child(5){animation-delay:0.32s}.stat-card:nth-child(6){animation-delay:0.4s}
+@keyframes cardFloat{from{opacity:0;transform:translateY(24px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.data-table tbody tr{animation:rowSlide 0.3s var(--ease-out) backwards}
+.data-table tbody tr:nth-child(1){animation-delay:0.02s}.data-table tbody tr:nth-child(2){animation-delay:0.04s}.data-table tbody tr:nth-child(3){animation-delay:0.06s}.data-table tbody tr:nth-child(4){animation-delay:0.08s}.data-table tbody tr:nth-child(5){animation-delay:0.1s}
+@keyframes rowSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+
+@media(max-width:1024px){.header-content{padding:0 var(--space-lg)}.page{padding:var(--space-lg)}.form-grid{grid-template-columns:1fr}.form-group.full-width{grid-column:span 1}}
+@media(max-width:768px){.header-content{flex-direction:column;gap:12px;height:auto;padding:var(--space-md) var(--space-lg)}.nav{width:100%;justify-content:center}.stats-grid{grid-template-columns:1fr 1fr}.card-header{flex-direction:column;align-items:flex-start}.filters{width:100%}.search-box{width:100%}.search-box input{width:100%}.detail-content{grid-template-columns:1fr}.modal-content{width:96%}}
+@media(max-width:480px){.logo h1{font-size:15px}.logo .subtitle{display:none}.nav-btn span:not(.material-icons){display:none}.nav-btn{padding:10px 14px}.radio-group{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr}.stat-card{padding:var(--space-md)}.stat-info h3{font-size:24px}.form{padding:var(--space-md)}}
+@media print{.header,.nav,.form-actions,.pagination,.loading-overlay{display:none !important}.card{box-shadow:none;border:1px solid #ddd}.page{padding:0}}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--offwhite)}::-webkit-scrollbar-thumb{background:var(--border-medium);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--navy)}
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loader"><div class="spinner"></div><p>جاري التحميل...</p></div>
+</div>
+<div id="toastContainer" class="toast-container"></div>
+
+<div id="app" class="app">
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon"><span class="material-icons">account_balance</span></div>
+        <div><h1>نظام إدارة الطلبات</h1><div class="subtitle">Budget Management System</div></div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-page="form" onclick="showPage('form')"><span class="material-icons">add_circle_outline</span><span>طلب جديد</span></button>
+        <button class="nav-btn" data-page="dashboard" onclick="showPage('dashboard')"><span class="material-icons">dashboard</span><span>لوحة التحكم</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <div id="progressBar" class="progress-bar" style="display:none;"><div class="progress-fill"></div></div>
+
+  <main id="formPage" class="page active">
+    <div class="container"><div class="card">
+      <div class="card-header"><div><h2>طلب جديد</h2><p>املأ جميع الحقول المطلوبة ثم اضغط إرسال</p></div></div>
+      <form id="requestForm" class="form">
+        <input type="hidden" id="csrfToken" name="csrfToken">
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="material-icons">info</span> البيانات العامة</h3>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">نوع الاحتياج</label>
+              <div class="radio-group">
+                <label class="radio-card"><input type="radio" name="requestType" value="ميزانية شهرية" onchange="handleRequestTypeChange(this)"><span class="radio-custom"></span><span class="radio-content"><span class="material-icons">calendar_month</span><span>ميزانية شهرية</span></span></label>
+                <label class="radio-card"><input type="radio" name="requestType" value="ميزانية عاجلة" onchange="handleRequestTypeChange(this)"><span class="radio-custom"></span><span class="radio-content"><span class="material-icons">priority_high</span><span>ميزانية عاجلة</span></span></label>
+                <label class="radio-card"><input type="radio" name="requestType" value="احتياج فني" onchange="handleRequestTypeChange(this)"><span class="radio-custom"></span><span class="radio-content"><span class="material-icons">build</span><span>احتياج فني</span></span></label>
+                <label class="radio-card"><input type="radio" name="requestType" value="بدل مواصلات" onchange="handleRequestTypeChange(this)"><span class="radio-custom"></span><span class="radio-content"><span class="material-icons">directions_car</span><span>بدل مواصلات</span></span></label>
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label" for="sector">القطاع</label><select id="sector" name="sector" class="form-select" required><option value="">اختر القطاع</option></select></div>
+            <div class="form-group"><label class="form-label" for="governorate">المحافظة</label><select id="governorate" name="governorate" class="form-select" required><option value="">اختر المحافظة</option></select></div>
+            <div class="form-group"><label class="form-label" for="university">الجامعة</label><select id="university" name="university" class="form-select"><option value="">اختر الجامعة</option></select></div>
+            <div class="form-group full-width"><label class="form-label" for="notes">الملاحظات</label><textarea id="notes" name="notes" class="form-textarea" rows="3" placeholder="أي ملاحظات إضافية..."></textarea></div>
+            <div class="form-group full-width">
+              <label class="form-label">هل تم التبليغ بهذا الاحتياج للمشرف الإداري؟</label>
+              <div class="radio-group horizontal">
+                <label class="radio-card small"><input type="radio" name="notifiedAdmin" value="true"><span class="radio-custom"></span><span>نعم</span></label>
+                <label class="radio-card small"><input type="radio" name="notifiedAdmin" value="false" checked><span class="radio-custom"></span><span>لا</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="monthlyBudgetSection" class="form-section hidden">
+          <h3 class="section-title"><span class="material-icons">account_balance_wallet</span> بيانات الميزانية الشهرية</h3>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="budgetMonth">طلب ميزانية شهر</label><input type="month" id="budgetMonth" name="budgetMonth" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="monthlyAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="monthlyAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="deadline">Deadline تسليم الميزانية</label><input type="date" id="deadline" name="deadline" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="transferNumber">رقم التحويل</label><input type="text" id="transferNumber" name="transferNumber" class="form-input" placeholder="إنستا باي / محفظة"></div>
+            <div class="form-group full-width">
+              <label class="form-label">هل تم تبليغ منسق القطاع؟</label>
+              <div class="radio-group horizontal">
+                <label class="radio-card small"><input type="radio" name="notifiedCoordinator" value="true"><span class="radio-custom"></span><span>نعم</span></label>
+                <label class="radio-card small"><input type="radio" name="notifiedCoordinator" value="false" checked><span class="radio-custom"></span><span>لا</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="table-container">
+            <div class="table-header"><h4>بنود الصرف</h4><button type="button" class="btn btn-secondary btn-sm" onclick="addItemRow()"><span class="material-icons">add</span> إضافة بند</button></div>
+            <table id="monthlyItemsTable" class="data-table"><thead><tr><th>البند</th><th>الوصف</th><th>التكلفة</th><th>الإجراءات</th></tr></thead><tbody id="monthlyItemsBody"></tbody><tfoot><tr><td colspan="2" class="text-left"><strong>الإجمالي</strong></td><td id="monthlyTotal">0.00 ج.م</td><td></td></tr></tfoot></table>
+          </div>
+        </div>
+
+        <div id="urgentBudgetSection" class="form-section hidden">
+          <h3 class="section-title"><span class="material-icons">warning</span> بيانات الميزانية العاجلة</h3>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="urgentDate">تاريخ الطلب</label><input type="date" id="urgentDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="activityName">الفاعلية أو النشاط</label><input type="text" id="activityName" name="activityName" class="form-input" placeholder="اسم النشاط"></div>
+            <div class="form-group"><label class="form-label" for="urgentAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="urgentAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="urgentTransfer">رقم التحويل</label><input type="text" id="urgentTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل"></div>
+          </div>
+          <div class="table-container">
+            <div class="table-header"><h4>بنود الصرف</h4><button type="button" class="btn btn-secondary btn-sm" onclick="addItemRow('urgent')"><span class="material-icons">add</span> إضافة بند</button></div>
+            <table id="urgentItemsTable" class="data-table"><thead><tr><th>الوصف</th><th>التكلفة</th><th>الإجراءات</th></tr></thead><tbody id="urgentItemsBody"></tbody><tfoot><tr><td class="text-left"><strong>الإجمالي</strong></td><td id="urgentTotal">0.00 ج.م</td><td></td></tr></tfoot></table>
+          </div>
+        </div>
+
+        <div id="technicalNeedSection" class="form-section hidden">
+          <h3 class="section-title"><span class="material-icons">engineering</span> بيانات الاحتياج الفني</h3>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="committee">اختيار اللجنة</label><select id="committee" name="committee" class="form-select"><option value="">اختر اللجنة</option></select></div>
+            <div class="form-group"><label class="form-label" for="technicalDate">تاريخ تقديم الطلب</label><input type="date" id="technicalDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="executionDate">تاريخ التنفيذ</label><input type="date" id="executionDate" name="executionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="purpose">الغرض</label><input type="text" id="purpose" name="purpose" class="form-input" placeholder="الغرض من الطلب"></div>
+            <div class="form-group"><label class="form-label" for="followUpEmail">إيميل المتابعة</label><input type="email" id="followUpEmail" name="followUpEmail" class="form-input" placeholder="email@example.com"></div>
+            <div class="form-group full-width"><label class="form-label" for="technicalNeed">الاحتياج المطلوب</label><textarea id="technicalNeed" name="technicalNeed" class="form-textarea" rows="5" placeholder="اشرح الاحتياج الفني بالتفصيل..."></textarea></div>
+          </div>
+        </div>
+
+        <div id="transportAllowanceSection" class="form-section hidden">
+          <h3 class="section-title"><span class="material-icons">directions_bus</span> بيانات بدل المواصلات</h3>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="transportActivity">اسم النشاط</label><input type="text" id="transportActivity" name="activityName" class="form-input" placeholder="اسم النشاط"></div>
+            <div class="form-group"><label class="form-label" for="transportDate">التاريخ</label><input type="date" id="transportDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="transportAmount">المبلغ</label><div class="input-with-icon"><input type="number" id="transportAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="numberOfPeople">عدد الأفراد</label><input type="number" id="numberOfPeople" name="numberOfPeople" class="form-input" min="1" placeholder="1"></div>
+            <div class="form-group full-width"><label class="form-label" for="reason">سبب الصرف</label><textarea id="reason" name="reason" class="form-textarea" rows="3" placeholder="اشرح سبب الصرف..."></textarea></div>
+            <div class="form-group"><label class="form-label" for="transportTransfer">رقم التحويل</label><input type="text" id="transportTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title"><span class="material-icons">person</span> بيانات مقدم الطلب</h3>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="requesterName">اسم مقدم الطلب</label><input type="text" id="requesterName" name="requesterName" class="form-input" required placeholder="الاسم الكامل"></div>
+            <div class="form-group"><label class="form-label" for="requesterEmail">البريد الإلكتروني</label><input type="email" id="requesterEmail" name="requesterEmail" class="form-input" required placeholder="email@example.com"></div>
+            <div class="form-group"><label class="form-label" for="requesterPhone">رقم الهاتف</label><input type="tel" id="requesterPhone" name="requesterPhone" class="form-input" required placeholder="01XXXXXXXXX"></div>
+            <div class="form-group"><label class="form-label">تاريخ التقديم</label><input type="text" id="submissionDateDisplay" class="form-input" readonly></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-amber btn-lg" id="submitBtn"><span class="material-icons">send</span> إرسال الطلب</button>
+        </div>
+      </form>
+    </div></div>
+  </main>
+
+  <main id="dashboardPage" class="page">
+    <div class="container">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="card">
+        <div class="card-header">
+          <h2>الطلبات</h2>
+          <div class="filters">
+            <div class="search-box"><span class="material-icons">search</span><input type="text" id="searchInput" placeholder="بحث..." oninput="handleSearch()"></div>
+            <select id="statusFilter" class="form-select" onchange="loadRequests()"><option value="">جميع الحالات</option><option value="New">جديد</option><option value="Under Review">قيد المراجعة</option><option value="Approved">معتمد</option><option value="Rejected">مرفوض</option><option value="Completed">مكتمل</option></select>
+            <select id="typeFilter" class="form-select" onchange="loadRequests()"><option value="">جميع الأنواع</option><option value="ميزانية شهرية">ميزانية شهرية</option><option value="ميزانية عاجلة">ميزانية عاجلة</option><option value="احتياج فني">احتياج فني</option><option value="بدل مواصلات">بدل مواصلات</option></select>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="requestsTable"><thead><tr><th>رقم الطلب</th><th>مقدم الطلب</th><th>القطاع</th><th>نوع الطلب</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody id="requestsBody"></tbody></table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="requestModal" class="modal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="modalTitle">تفاصيل الطلب</h2><button class="modal-close" onclick="closeModal()"><span class="material-icons">close</span></button></div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <div id="passwordModal" class="password-overlay hidden">
+    <div class="password-card">
+      <div class="lock-icon"><span class="material-icons">lock</span></div>
+      <h2>لوحة التحكم</h2>
+      <p>أدخل كلمة المرور للوصول</p>
+      <input type="password" id="dashboardPassword" class="form-input" placeholder="كلمة المرور" style="text-align:center;font-size:16px;padding:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')checkDashboardPassword()">
+      <button class="btn btn-amber btn-lg" style="width:100%" onclick="checkDashboardPassword()"><span class="material-icons">login</span> دخول</button>
+      <div id="passwordError" class="error-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===========================================
+   CONFIG - غيّر الرابط ده بالـ Apps Script URL بتاعك
+   =========================================== */
+var API_URL = 'https://script.google.com/macros/s/AKfycbyc3P0K2iBe7fG4-ncbTZ4qEeOvXdKf_UBwPBBEYs29qGY05MVmAZ7TkEL-O5nSnsfX7w/exec';
+
+var appState = {
+  currentPage: 'form',
+  currentRequestPage: 1,
+  totalPages: 1,
+  csrfToken: '',
+  config: null,
+  initialized: false,
+  dashboardUnlocked: false
+};
+
+var FALLBACK_CONFIG = {
+  requestTypes: { MONTHLY: 'ميزانية شهرية', URGENT: 'ميزانية عاجلة', TECHNICAL: 'احتياج فني', TRANSPORT: 'بدل مواصلات' },
+  statuses: { NEW: 'New', UNDER_REVIEW: 'Under Review', APPROVED: 'Approved', REJECTED: 'Rejected', COMPLETED: 'Completed' },
+  sectors: ['اللجان المركزية','التوسع','التفعيل','قطاع بحري','قطاع الجنوب 1','قطاع الجنوب 2','قطاع شمال الصعيد','قطاع القاهرة الكبري','قطاع القناة'],
+  governorates: ['القاهرة','الأسكندرية','بورسعيد','السويس','دمياط','الدقهلية','الشرقية','القليوبية','كفر الشيخ','الغربية','المنوفية','البحيرة','الإسماعيلية','الجيزة','بنى سويف','الفيوم','المنيا','أسيوط','سوهاج','قنا','أسوان','الأقصر','البحر الأحمر','الوادي الجديد','مطروح','شمال سيناء','جنوب سيناء'],
+  universities: ['جامعة القاهرة','جامعة المنصورة','جامعة السويس','جامعة قناة السويس','جامعة بنها','جامعة الأزهر بالقاهرة','جامعة MTI','جامعة المنيا','جامعة بني سويف','جامعة أسيوط','جامعة أسوان','جامعة قنا','جامعة سوهاج','جامعة المعهد العاشر فرع مطروح','جامعة المعهد العاشر','جامعة المنوفية','جامعة طنطا','جامعة طيبة التكنولوجية','جامعة Sphinx','جامعة الأقصر الحكومية','جامعة الأقصر الأهلية','جامعة سيناء','جامعة العريش','جامعة EST','جامعة مطروح','جامعة الوادى الجديد','جامعة تفهنا فرع الأزهر','جامعة الأقصر فرع الأزهر','معهد القاهرة العالى الجديد','جامعة اللوتس','المعهد التكنولوچى العالى للعلوم التطبيقية','المعهد العالى للخدمة الإجتماعية باسوان','جامعة الأهرام الكندية','المعهد العالي للهندسة بالأقصر','جامعة المنوفية الأهلية','جامعة المنصورة الاهلية','جامعة الزقازيق','جامعة ميريت'],
+  committees: ['Media','HR','PR','Training','Activation','IT','Attraction'],
+  expenseItems: ['إيفنت','مطبوعات','جيفتات','استقبال','لوجستيك','قاعات','Other'],
+  colors: {}
+};
+
+/* ===========================================
+   API Helper - GET-based for Apps Script CORS compatibility
+   =========================================== */
+function apiCall(action, data) {
+  var params = 'action=' + encodeURIComponent(action);
+  if (data && Object.keys(data).length > 0) {
+    params += '&data=' + encodeURIComponent(JSON.stringify(data));
+  }
+  var url = API_URL + '?' + params;
+  return fetch(url, { method: 'GET' })
+    .then(function(response) { return response.text(); })
+    .then(function(text) {
+      try { return JSON.parse(text); }
+      catch(e) { return { success: false, error: 'Invalid response from server' }; }
+    });
+}
+
+/* ===========================================
+   Components (inline)
+   =========================================== */
+var Components = (function() {
+  function createStatCard(icon, color, value, label) {
+    return '<div class="stat-card"><div class="stat-icon ' + color + '"><span class="material-icons">' + icon + '</span></div><div class="stat-info"><h3>' + value + '</h3><p>' + label + '</p></div></div>';
+  }
+  function createStatusBadge(status) {
+    var sc = status.toLowerCase().replace(/\s+/g, '-');
+    var labels = { 'new':'جديد', 'under-review':'قيد المراجعة', 'approved':'معتمد', 'rejected':'مرفوض', 'completed':'مكتمل', 'pending':'قيد الانتظار' };
+    return '<span class="status-badge ' + sc + '">' + (labels[sc] || status) + '</span>';
+  }
+  function createRequestRow(r) {
+    var rid = r['Request ID']||'', name = r['Requester Name']||'', sec = r['Sector']||'', type = r['Request Type']||'', st = r['Status']||'New', ts = r['Timestamp']||'';
+    var fd = ''; try { fd = new Date(ts).toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric'}); } catch(e){ fd = ts; }
+    return '<tr><td><strong>'+rid+'</strong></td><td>'+esc(name)+'</td><td>'+esc(sec)+'</td><td>'+esc(type)+'</td><td>'+createStatusBadge(st)+'</td><td>'+fd+'</td><td><button class="btn btn-secondary btn-sm" onclick="viewRequest(\''+rid+'\')"><span class="material-icons">visibility</span> عرض</button></td></tr>';
+  }
+  function createPagination(cur, total, fn) {
+    if (total <= 1) return '';
+    var h = '<button class="pagination-btn" onclick="'+fn+'('+(cur-1)+')" '+(cur===1?'disabled':'')+'><span class="material-icons">chevron_right</span></button>';
+    var s = Math.max(1, cur-2), e = Math.min(total, s+4); s = Math.max(1, e-4);
+    for (var i=s; i<=e; i++) h += '<button class="pagination-btn '+(i===cur?'active':'')+'" onclick="'+fn+'('+i+')">'+i+'</button>';
+    h += '<button class="pagination-btn" onclick="'+fn+'('+(cur+1)+')" '+(cur===total?'disabled':'')+'><span class="material-icons">chevron_left</span></button>';
+    return h;
+  }
+  function createItemRow(type, idx) {
+    if (type === 'urgent') return '<tr data-index="'+idx+'"><td><input type="text" class="form-input" placeholder="الوصف" onchange="updateItemTotal(\''+type+'\')"></td><td><input type="number" class="form-input" min="0" step="0.01" placeholder="0.00" onchange="updateItemTotal(\''+type+'\')"></td><td><button type="button" class="btn btn-danger btn-sm" onclick="removeItemRow(this,\''+type+'\')"><span class="material-icons">delete</span></button></td></tr>';
+    var opts = '<option value="">اختر البند</option>';
+    ['إيفنت','مطبوعات','جيفتات','استقبال','لوجستيك','قاعات','Other'].forEach(function(i){ opts+='<option value="'+i+'">'+i+'</option>'; });
+    return '<tr data-index="'+idx+'"><td><select class="form-select" onchange="updateItemTotal(\''+type+'\')">'+opts+'</select></td><td><input type="text" class="form-input" placeholder="الوصف" onchange="updateItemTotal(\''+type+'\')"></td><td><input type="number" class="form-input" min="0" step="0.01" placeholder="0.00" onchange="updateItemTotal(\''+type+'\')"></td><td><button type="button" class="btn btn-danger btn-sm" onclick="removeItemRow(this,\''+type+'\')"><span class="material-icons">delete</span></button></td></tr>';
+  }
+  function createDetailSection(title, content) { return '<div class="detail-section"><h4 class="detail-title">'+title+'</h4><div class="detail-content">'+content+'</div></div>'; }
+  function createDetailItem(label, value) { return '<div class="detail-item"><span class="detail-label">'+label+'</span><span class="detail-value">'+esc(value||'غير محدد')+'</span></div>'; }
+  function createItemsTable(items) {
+    if (!items||items.length===0) return '<p style="color:var(--text-secondary)">لا توجد بنود</p>';
+    var h='<table class="data-table"><thead><tr><th>البند</th><th>الوصف</th><th>التكلفة</th></tr></thead><tbody>', total=0;
+    items.forEach(function(i){ var c=parseFloat(i['Cost']||i.cost||0); total+=c; h+='<tr><td>'+esc(i['Category']||i.category||'')+'</td><td>'+esc(i['Description']||i.description||'')+'</td><td>'+c.toFixed(2)+' ج.م</td></tr>'; });
+    h+='</tbody><tfoot><tr><td colspan="2"><strong>الإجمالي</strong></td><td><strong>'+total.toFixed(2)+' ج.م</strong></td></tr></tfoot></table>';
+    return h;
+  }
+  function createWorkflowTimeline(wf) {
+    if (!wf||wf.length===0) return '<p style="color:var(--text-secondary)">لا توجد سجلات</p>';
+    var h='<div class="workflow-timeline">';
+    wf.forEach(function(l){
+      var a=l['Action']||'', d=l['Details']||'', t=l['Timestamp']||'', fd='';
+      try{fd=new Date(t).toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){fd=t;}
+      var icon='info',color='blue';
+      switch(a){case'Created':icon='add_circle';color='green';break;case'Email Sent':icon='email';color='blue';break;case'Reply Received':icon='reply';color='yellow';break;case'Forwarded':icon='forward';color='blue';break;case'Status Changed':icon='swap_horiz';color='purple';break;case'Approved':icon='check_circle';color='green';break;case'Rejected':icon='cancel';color='red';break;case'Closed':icon='lock';color='red';break;}
+      h+='<div class="timeline-item"><div class="timeline-icon '+color+'"><span class="material-icons">'+icon+'</span></div><div class="timeline-content"><div class="timeline-header"><strong>'+esc(a)+'</strong><span class="timeline-date">'+fd+'</span></div><p class="timeline-details">'+esc(d)+'</p></div></div>';
+    });
+    return h+'</div>';
+  }
+  function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+  return { createStatCard:createStatCard, createStatusBadge:createStatusBadge, createRequestRow:createRequestRow, createPagination:createPagination, createItemRow:createItemRow, createDetailSection:createDetailSection, createDetailItem:createDetailItem, createItemsTable:createItemsTable, createWorkflowTimeline:createWorkflowTimeline };
+})();
+
+function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+/* ===========================================
+   App Logic
+   =========================================== */
+function initApp() {
+  var today = new Date().toISOString().split('T')[0];
+  var df = document.getElementById('submissionDateDisplay');
+  if (df) df.value = today;
+
+  showLoading();
+  var safety = setTimeout(function(){ if(!appState.initialized) applyFallback(); }, 8000);
+
+  apiCall('getConfig')
+    .then(function(r){ clearTimeout(safety); if(r&&r.success){ appState.config=r.data; populateDropdowns(r.data); appState.initialized=true; hideLoading(); } else { applyFallback(); } })
+    .catch(function(){ clearTimeout(safety); applyFallback(); });
+}
+
+function applyFallback() {
+  if (appState.initialized) return;
+  appState.initialized = true;
+  appState.config = FALLBACK_CONFIG;
+  populateDropdowns(FALLBACK_CONFIG);
+  hideLoading();
+  showToast('تم تحميل الإعدادات بنسخة محلية', 'info');
+}
+
+function populateDropdowns(config) {
+  var s=document.getElementById('sector'), g=document.getElementById('governorate'), u=document.getElementById('university'), c=document.getElementById('committee');
+  config.sectors.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o); });
+  config.governorates.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;g.appendChild(o); });
+  if(config.universities){config.universities.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;u.appendChild(o); });}
+  config.committees.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;c.appendChild(o); });
+  loadCSRFToken();
+}
+
+function loadCSRFToken() {
+  apiCall('getCSRFToken')
+    .then(function(r){ if(r&&r.success){ appState.csrfToken=r.data.token; document.getElementById('csrfToken').value=r.data.token; } })
+    .catch(function(){});
+}
+
+function handleRequestTypeChange(radio) {
+  ['monthlyBudgetSection','urgentBudgetSection','technicalNeedSection','transportAllowanceSection'].forEach(function(id){ document.getElementById(id).classList.add('hidden'); });
+  var v=radio.value;
+  if(v==='ميزانية شهرية') document.getElementById('monthlyBudgetSection').classList.remove('hidden');
+  else if(v==='ميزانية عاجلة') document.getElementById('urgentBudgetSection').classList.remove('hidden');
+  else if(v==='احتياج فني') document.getElementById('technicalNeedSection').classList.remove('hidden');
+  else if(v==='بدل مواصلات') document.getElementById('transportAllowanceSection').classList.remove('hidden');
+}
+
+function addItemRow(type) {
+  type=type||'monthly';
+  var tid=type==='urgent'?'urgentItemsBody':'monthlyItemsBody';
+  var tb=document.getElementById(tid);
+  tb.insertAdjacentHTML('beforeend', Components.createItemRow(type, tb.rows.length));
+  updateItemTotal(type);
+}
+function removeItemRow(btn,type){ btn.closest('tr').remove(); updateItemTotal(type); }
+function updateItemTotal(type) {
+  type=type||'monthly';
+  var tid=type==='urgent'?'urgentItemsBody':'monthlyItemsBody';
+  var totid=type==='urgent'?'urgentTotal':'monthlyTotal';
+  var tb=document.getElementById(tid), total=0;
+  for(var i=0;i<tb.rows.length;i++){var ci=tb.rows[i].querySelector('input[type="number"]');if(ci)total+=parseFloat(ci.value)||0;}
+  document.getElementById(totid).textContent=total.toFixed(2)+' ج.م';
+}
+
+document.getElementById('requestForm').addEventListener('submit', function(e){ e.preventDefault(); submitRequest(); });
+
+function submitRequest() {
+  var form=document.getElementById('requestForm'), fd=new FormData(form);
+  var rt=fd.get('requestType');
+  if(!rt){showToast('يرجى اختيار نوع الطلب','error');return;}
+
+  var data={ action:'submitRequest', csrfToken:appState.csrfToken, requestType:rt, sector:fd.get('sector'), governorate:fd.get('governorate'), university:fd.get('university'), notes:fd.get('notes'), notifiedAdmin:fd.get('notifiedAdmin')==='true', requesterName:fd.get('requesterName'), requesterEmail:fd.get('requesterEmail'), requesterPhone:fd.get('requesterPhone') };
+
+  if(rt==='ميزانية شهرية'){ data.budgetMonth=fd.get('budgetMonth');data.amount=fd.get('amount');data.deadline=fd.get('deadline');data.notifiedCoordinator=fd.get('notifiedCoordinator')==='true';data.transferNumber=fd.get('transferNumber');data.items=getMonthlyItems(); }
+  else if(rt==='ميزانية عاجلة'){ data.submissionDate=fd.get('submissionDate');data.activityName=fd.get('activityName');data.amount=fd.get('amount');data.transferNumber=fd.get('transferNumber');data.items=getUrgentItems(); }
+  else if(rt==='احتياج فني'){ data.committee=fd.get('committee');data.submissionDate=fd.get('submissionDate');data.executionDate=fd.get('executionDate');data.purpose=fd.get('purpose');data.followUpEmail=fd.get('followUpEmail');data.technicalNeed=fd.get('technicalNeed'); }
+  else if(rt==='بدل مواصلات'){ data.activityName=fd.get('activityName');data.submissionDate=fd.get('submissionDate');data.amount=fd.get('amount');data.numberOfPeople=fd.get('numberOfPeople');data.reason=fd.get('reason');data.transferNumber=fd.get('transferNumber'); }
+
+  if(!validateFormData(data))return;
+  var submitBtn = document.getElementById('submitBtn');
+  showProgress(); setBtnLoading(submitBtn, true);
+
+  apiCall('submitRequest', data)
+    .then(function(r){
+      var result=(typeof r==='string')?JSON.parse(r):r;
+      hideProgress(); setBtnLoading(submitBtn, false);
+      if(result.success){
+        showToast('تم إرسال الطلب بنجاح! رقم الطلب: '+result.data.requestId,'success');
+        if(result.data.csrfToken){ appState.csrfToken=result.data.csrfToken; document.getElementById('csrfToken').value=result.data.csrfToken; }
+        form.reset(); document.getElementById('monthlyItemsBody').innerHTML=''; document.getElementById('urgentItemsBody').innerHTML='';
+        ['monthlyBudgetSection','urgentBudgetSection','technicalNeedSection','transportAllowanceSection'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
+        document.getElementById('submissionDateDisplay').value=new Date().toISOString().split('T')[0];
+      } else { showToast('خطأ: '+(result.error||result.message),'error'); }
+    })
+    .catch(function(){ hideProgress(); setBtnLoading(submitBtn, false); showToast('خطأ في الاتصال بالخادم','error'); });
+}
+
+function getMonthlyItems(){var tb=document.getElementById('monthlyItemsBody'),items=[];for(var i=0;i<tb.rows.length;i++){var r=tb.rows[i],cat=r.querySelector('select')?r.querySelector('select').value:'',desc=r.querySelector('input[type="text"]')?r.querySelector('input[type="text"]').value:'',cost=r.querySelector('input[type="number"]')?r.querySelector('input[type="number"]').value:0;if(cat||desc||cost)items.push({category:cat,description:desc,cost:parseFloat(cost)||0,quantity:1});}return items;}
+function getUrgentItems(){var tb=document.getElementById('urgentItemsBody'),items=[];for(var i=0;i<tb.rows.length;i++){var r=tb.rows[i],desc=r.querySelector('input[type="text"]')?r.querySelector('input[type="text"]').value:'',cost=r.querySelector('input[type="number"]')?r.querySelector('input[type="number"]').value:0;if(desc||cost)items.push({category:'',description:desc,cost:parseFloat(cost)||0,quantity:1});}return items;}
+
+function validateFormData(d){
+  if(!d.requestType){showToast('يرجى اختيار نوع الطلب','error');return false;}
+  if(!d.sector){showToast('يرجى اختيار القطاع','error');return false;}
+  if(!d.governorate){showToast('يرجى اختيار المحافظة','error');return false;}
+  if(!d.requesterName||d.requesterName.trim().length<2){showToast('يرجى إدخال اسم مقدم الطلب','error');return false;}
+  if(!d.requesterEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.requesterEmail)){showToast('يرجى إدخال بريد إلكتروني صحيح','error');return false;}
+  if(!d.requesterPhone||d.requesterPhone.length<10){showToast('يرجى إدخال رقم هاتف صحيح','error');return false;}
+  return true;
+}
+
+function showPage(p){
+  if (p === 'dashboard' && !appState.dashboardUnlocked) {
+    document.getElementById('passwordModal').classList.remove('hidden');
+    document.getElementById('dashboardPassword').value = '';
+    document.getElementById('dashboardPassword').focus();
+    document.getElementById('passwordError').textContent = '';
+    document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelector('[data-page="form"]').classList.add('active');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(function(pg){pg.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById(p+'Page').classList.add('active');
+  document.querySelector('[data-page="'+p+'"]').classList.add('active');
+  appState.currentPage=p;
+  if(p==='dashboard')loadDashboard();
+}
+function loadDashboard(){
+  document.getElementById('statsGrid').innerHTML = getStatsSkeleton();
+  document.getElementById('requestsBody').innerHTML = getTableSkeleton(5);
+  loadStats();
+  loadRequests();
+}
+
+function loadStats(){
+  apiCall('getStats').then(function(r){if(r&&r.success)renderStats(r.data);}).catch(function(){});
+}
+function renderStats(s){
+  var h=Components.createStatCard('assignment','navy',s.total,'إجمالي الطلبات');
+  h+=Components.createStatCard('fiber_new','amber',s.new,'طلبات جديدة');
+  h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة');
+  h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة');
+  h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة');
+  h+=Components.createStatCard('account_balance','navy',s.totalAmount.toFixed(2),'إجمالي المبالغ');
+  document.getElementById('statsGrid').innerHTML=h;
+}
+
+function loadRequests(page){
+  page=page||appState.currentRequestPage; appState.currentRequestPage=page;
+  var opts={page:parseInt(page),limit:10,status:document.getElementById('statusFilter').value,type:document.getElementById('typeFilter').value,search:document.getElementById('searchInput').value};
+  apiCall('getRequests',opts).then(function(r){if(r&&r.success)renderRequests(r.data);}).catch(function(){});
+}
+function renderRequests(result){
+  var tb=document.getElementById('requestsBody'),h='';
+  if(result.data.length===0) h='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-secondary)">لا توجد طلبات</td></tr>';
+  else result.data.forEach(function(r){h+=Components.createRequestRow(r);});
+  tb.innerHTML=h;
+  document.getElementById('pagination').innerHTML=Components.createPagination(result.page,result.totalPages,'loadRequests');
+  appState.totalPages=result.totalPages;
+}
+
+function handleSearch(){clearTimeout(window.searchTimeout);window.searchTimeout=setTimeout(function(){loadRequests(1);},300);}
+
+function viewRequest(rid){
+  showLoading();
+  apiCall('getRequest',{requestId:rid}).then(function(r){
+    if(r&&r.success){renderRequestDetails(r.data,rid);hideLoading();document.getElementById('requestModal').classList.add('active');}
+    else{hideLoading();showToast('خطأ في تحميل تفاصيل الطلب','error');}
+  }).catch(function(){hideLoading();showToast('خطأ في الاتصال','error');});
+}
+
+function renderRequestDetails(req,rid){
+  rid=rid||req['Request ID']||'';
+  var h=Components.createDetailSection('البيانات الأساسية',
+    Components.createDetailItem('رقم الطلب',rid)+Components.createDetailItem('مقدم الطلب',req['Requester Name'])+Components.createDetailItem('القطاع',req['Sector'])+Components.createDetailItem('المحافظة',req['Governorate'])+Components.createDetailItem('نوع الطلب',req['Request Type'])+Components.createDetailItem('الحالة',req['Status'])+Components.createDetailItem('الإيميل',req['Requester Email'])+Components.createDetailItem('رقم الهاتف',req['Requester Phone'])+Components.createDetailItem('الملاحظات',req['Notes']));
+  h+='<div id="modalItemsSection"><p style="color:var(--text-muted)">جاري تحميل البنود...</p></div>';
+  h+='<div id="modalWorkflowSection"><p style="color:var(--text-muted)">جاري تحميل سجل العمليات...</p></div>';
+  h+=Components.createDetailSection('رد وتحديث الحالة','<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="form-label">الحالة الجديدة</label><select id="newStatus" class="form-select" style="width:100%"><option value="">— بدون تغيير —</option><option value="New">جديد</option><option value="Under Review">قيد المراجعة</option><option value="Approved">معتمد</option><option value="Rejected">مرفوض</option><option value="Completed">مكتمل</option></select></div><div><label class="form-label">الرد</label><textarea id="replyBody" class="form-textarea" rows="4" placeholder="اكتب ردك هنا..."></textarea></div><button class="btn btn-amber" onclick="sendReplyWithStatus(\''+rid+'\')" style="align-self:flex-start"><span class="material-icons">send</span> إرسال الرد والتحديث</button></div>');
+  document.getElementById('modalTitle').textContent='تفاصيل الطلب - '+rid;
+  document.getElementById('modalBody').innerHTML=h;
+
+  apiCall('getItems',{requestId:rid}).then(function(r){var d=r&&r.success?r.data:[];document.getElementById('modalItemsSection').innerHTML=Components.createDetailSection('بنود الصرف',Components.createItemsTable(d));}).catch(function(){document.getElementById('modalItemsSection').innerHTML=Components.createDetailSection('بنود الصرف','<p style="color:var(--text-muted)">لا توجد بنود</p>');});
+  apiCall('getWorkflow',{requestId:rid}).then(function(r){var d=r&&r.success?r.data:[];document.getElementById('modalWorkflowSection').innerHTML=Components.createDetailSection('سجل العمليات',Components.createWorkflowTimeline(d));}).catch(function(){document.getElementById('modalWorkflowSection').innerHTML=Components.createDetailSection('سجل العمليات','<p style="color:var(--text-muted)">لا توجد سجلات</p>');});
+}
+
+function closeModal(){document.getElementById('requestModal').classList.remove('active');}
+
+function updateRequestStatus(rid){
+  var ns=document.getElementById('newStatus').value;
+  var btn = document.querySelector('.status-update-form .btn');
+  showProgress(); setBtnLoading(btn, true);
+  apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
+    hideProgress(); setBtnLoading(btn, false);
+    if(r&&r.success){showToast('تم تحديث الحالة بنجاح','success');if(r.data&&r.data.csrfToken){appState.csrfToken=r.data.csrfToken;document.getElementById('csrfToken').value=r.data.csrfToken;}loadRequests();closeModal();}
+    else{showToast('خطأ: '+(r.error||r.message),'error');}
+  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
+}
+
+function sendReplyWithStatus(rid){
+  var rb=document.getElementById('replyBody').value;
+  var ns=document.getElementById('newStatus').value;
+  if(!rb.trim()&&!ns){showToast('يرجى كتابة رد أو اختيار حالة','error');return;}
+  var btn=document.querySelector('.detail-section:last-child .btn');
+  showProgress();setBtnLoading(btn,true);
+
+  var promises=[];
+  if(rb.trim()){
+    promises.push(apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}));
+  }
+  if(ns){
+    promises.push(apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}));
+  }
+
+  Promise.all(promises).then(function(results){
+    hideProgress();setBtnLoading(btn,false);
+    var allOk=true;
+    results.forEach(function(r){if(!r||!r.success)allOk=false;});
+    if(allOk){
+      var msgs=[];
+      if(rb.trim())msgs.push('تم إرسال الرد');
+      if(ns)msgs.push('تم تحديث الحالة');
+      showToast(msgs.join(' و '),'success');
+      var lastResult=results[results.length-1];
+      if(lastResult&&lastResult.data&&lastResult.data.csrfToken){appState.csrfToken=lastResult.data.csrfToken;document.getElementById('csrfToken').value=lastResult.data.csrfToken;}
+      document.getElementById('replyBody').value='';
+      document.getElementById('newStatus').value='';
+      loadRequests();
+    }else{
+      showToast('حدث خطأ في إحدى العمليات','error');
+    }
+  }).catch(function(){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال','error');});
+}
+
+function sendReply(rid){
+  var rb=document.getElementById('replyBody').value;
+  if(!rb.trim()){showToast('يرجى كتابة رد','error');return;}
+  var btn = document.querySelector('.detail-section:last-child .btn');
+  showProgress(); setBtnLoading(btn, true);
+  apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
+    hideProgress(); setBtnLoading(btn, false);
+    if(r&&r.success){showToast('تم إرسال الرد بنجاح','success');if(r.data&&r.data.csrfToken)appState.csrfToken=r.data.csrfToken;document.getElementById('replyBody').value='';}
+    else{showToast('خطأ: '+(r.error||r.message),'error');}
+  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
+}
+
+function showLoading(){document.getElementById('loadingOverlay').style.display='flex';}
+function hideLoading(){document.getElementById('loadingOverlay').style.display='none';}
+function showProgress(){document.getElementById('progressBar').style.display='block';document.querySelector('.progress-fill').style.width='100%';}
+function hideProgress(){document.querySelector('.progress-fill').style.width='0%';setTimeout(function(){document.getElementById('progressBar').style.display='none';},300);}
+
+function setBtnLoading(btn, loading) {
+  if (loading) {
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    if (!btn.querySelector('.btn-spinner')) {
+      var sp = document.createElement('span');
+      sp.className = 'btn-spinner';
+      btn.appendChild(sp);
+    }
+  } else {
+    btn.disabled = false;
+    btn.classList.remove('btn-loading');
+    var sp = btn.querySelector('.btn-spinner');
+    if (sp) sp.remove();
+  }
+}
+
+function getStatsSkeleton() {
+  var h = '';
+  var colors = ['navy','amber','purple','green','red','navy'];
+  var icons = ['assignment','fiber_new','pending','check_circle','cancel','account_balance'];
+  for (var i = 0; i < 6; i++) {
+    h += '<div class="stat-card"><div class="stat-icon ' + colors[i] + '"><span class="material-icons">' + icons[i] + '</span></div><div class="stat-info"><div class="skeleton" style="width:60px;height:32px;margin-bottom:6px"></div><div class="skeleton" style="width:100px;height:14px"></div></div></div>';
+  }
+  return h;
+}
+
+function getTableSkeleton(rows) {
+  rows = rows || 5;
+  var h = '';
+  for (var i = 0; i < rows; i++) {
+    h += '<tr class="table-skeleton"><td><div class="sk-line skeleton" style="width:70px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:100px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:90px;height:16px"></div></td><td><div class="sk-badge skeleton"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-btn skeleton"></div></td></tr>';
+  }
+  return h;
+}
+
+/* Password Modal */
+var DASHBOARD_PASSWORD = 'ITUELM';
+function checkDashboardPassword() {
+  var input = document.getElementById('dashboardPassword');
+  var err = document.getElementById('passwordError');
+  if (input.value === DASHBOARD_PASSWORD) {
+    appState.dashboardUnlocked = true;
+    document.getElementById('passwordModal').classList.add('hidden');
+    input.value = '';
+    err.textContent = '';
+    loadDashboard();
+  } else {
+    err.textContent = 'كلمة المرور غير صحيحة';
+    input.style.borderColor = 'var(--danger)';
+    input.value = '';
+    input.focus();
+    setTimeout(function(){ input.style.borderColor = ''; }, 2000);
+  }
+}
+
+function showToast(message,type){
+  type=type||'info';var c=document.getElementById('toastContainer');
+  var icons={success:'check_circle',error:'error',warning:'warning',info:'info'};
+  var t=document.createElement('div');t.className='toast '+type;
+  t.innerHTML='<span class="material-icons toast-icon">'+icons[type]+'</span><span class="toast-message">'+message+'</span><button class="toast-close" onclick="dismissToast(this.parentElement)"><span class="material-icons">close</span></button>';
+  c.appendChild(t);setTimeout(function(){dismissToast(t);},4000);
+}
+function dismissToast(t){if(!t||!t.parentElement)return;t.classList.add('removing');setTimeout(function(){if(t.parentElement)t.remove();},300);}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
