@@ -552,6 +552,12 @@ function doGet(e) {
         return Utils.createSuccessResponse(config);
 
       case 'getCSRFToken':
+        var existing = PropertiesService.getScriptProperties().getProperty('csrf_token');
+        var exTs = PropertiesService.getScriptProperties().getProperty('csrf_timestamp');
+        var expired = exTs && (new Date().getTime() - parseInt(exTs)) / 1000 > 3600;
+        if (existing && !expired) {
+          return Utils.createSuccessResponse({ token: existing });
+        }
         var token = Validation.generateCSRFToken();
         return Utils.createSuccessResponse({ token: token });
 
@@ -641,6 +647,12 @@ function doPost(e) {
         return Utils.createSuccessResponse(config);
 
       case 'getCSRFToken':
+        var existing = PropertiesService.getScriptProperties().getProperty('csrf_token');
+        var exTs = PropertiesService.getScriptProperties().getProperty('csrf_timestamp');
+        var expired = exTs && (new Date().getTime() - parseInt(exTs)) / 1000 > 3600;
+        if (existing && !expired) {
+          return Utils.createSuccessResponse({ token: existing });
+        }
         var token = Validation.generateCSRFToken();
         return Utils.createSuccessResponse({ token: token });
 
@@ -713,7 +725,6 @@ function doPost(e) {
 
 function init() {
   try { Database.init(); } catch(e) { Logger.log('DB init: '+e.toString()); }
-  try { Validation.generateCSRFToken(); } catch(e) { Logger.log('CSRF init: '+e.toString()); }
 }
 
 function checkReplies() { init(); ReplyService.checkForReplies(); }
