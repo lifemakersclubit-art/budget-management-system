@@ -428,6 +428,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
       <p>أدخل كلمة المرور للوصول</p>
       <input type="password" id="dashboardPassword" class="form-input" placeholder="كلمة المرور" style="text-align:center;font-size:16px;padding:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')checkDashboardPassword()">
       <button class="btn btn-amber btn-lg" style="width:100%" onclick="checkDashboardPassword()"><span class="material-icons">login</span> دخول</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:10px" onclick="closePasswordModal()"><span class="material-icons">arrow_forward</span> عودة</button>
       <div id="passwordError" class="error-msg"></div>
     </div>
   </div>
@@ -823,6 +824,14 @@ function getTableSkeleton(rows) {
     h += '<tr class="table-skeleton"><td><div class="sk-line skeleton" style="width:70px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:100px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:90px;height:16px"></div></td><td><div class="sk-badge skeleton"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-btn skeleton"></div></td></tr>';
   }
   return h;
+}
+
+function closePasswordModal(){
+  document.getElementById('passwordModal').classList.add('hidden');
+  document.getElementById('dashboardPassword').value='';
+  document.getElementById('passwordError').textContent='';
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelector('[data-page="form"]').classList.add('active');
 }
 
 /* Password Modal */
