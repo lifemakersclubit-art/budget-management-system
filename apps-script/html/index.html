@@ -211,6 +211,49 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 
 .hidden{display:none !important}
 
+.btn-loading .btn-text{opacity:0}.btn-loading .btn-spinner{display:block}
+.btn-spinner{display:none;width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:currentColor;border-radius:50%;animation:spin 0.6s linear infinite;position:absolute}
+
+.skeleton{background:linear-gradient(90deg,var(--border-light) 25%,rgba(1,73,118,0.06) 50%,var(--border-light) 75%);background-size:200% 100%;animation:skeletonPulse 1.5s ease-in-out infinite;border-radius:var(--radius-md)}
+@keyframes skeletonPulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+.stagger>*{opacity:0;transform:translateY(20px);animation:staggerIn 0.5s var(--ease-out) forwards}
+.stagger>*:nth-child(1){animation-delay:0.05s}.stagger>*:nth-child(2){animation-delay:0.1s}.stagger>*:nth-child(3){animation-delay:0.15s}.stagger>*:nth-child(4){animation-delay:0.2s}.stagger>*:nth-child(5){animation-delay:0.25s}.stagger>*:nth-child(6){animation-delay:0.3s}
+@keyframes staggerIn{to{opacity:1;transform:translateY(0)}}
+
+.password-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:5000;display:flex;justify-content:center;align-items:center}
+.password-card{background:var(--white);border-radius:var(--radius-xl);padding:var(--space-2xl);width:420px;max-width:90vw;text-align:center;box-shadow:var(--shadow-xl);border:1px solid var(--border-light)}
+.password-card .lock-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--navy),var(--navy-light));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:var(--shadow-navy)}
+.password-card .lock-icon .material-icons{font-size:36px;color:var(--amber)}
+.password-card h2{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy-deep);margin-bottom:8px}
+.password-card p{color:var(--text-muted);font-size:14px;margin-bottom:24px}
+.password-card .error-msg{color:var(--danger);font-size:13px;margin-top:8px;min-height:20px}
+
+.table-skeleton td{padding:16px 18px}
+.table-skeleton .sk-line{height:16px;border-radius:4px}
+.table-skeleton .sk-badge{height:26px;border-radius:100px;width:80px}
+.table-skeleton .sk-btn{height:32px;border-radius:var(--radius-sm);width:70px}
+
+@keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalSlideUp{from{transform:translateY(30px) scale(0.97);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastSlideIn{from{transform:translateY(-30px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes toastSlideOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-20px)}}
+
+.toast{animation:toastSlideIn 0.4s var(--ease-out)}
+.toast.removing{animation:toastSlideOut 0.3s var(--ease-out) forwards}
+
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;background:rgba(255,255,255,0.25);border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:none}
+.btn:active::before{width:200px;height:200px;opacity:0;transition:width 0.5s,height 0.5s,opacity 0.5s}
+
+.stat-card{animation:cardFloat 0.5s var(--ease-out) backwards}
+.stat-card:nth-child(1){animation-delay:0s}.stat-card:nth-child(2){animation-delay:0.08s}.stat-card:nth-child(3){animation-delay:0.16s}.stat-card:nth-child(4){animation-delay:0.24s}.stat-card:nth-child(5){animation-delay:0.32s}.stat-card:nth-child(6){animation-delay:0.4s}
+@keyframes cardFloat{from{opacity:0;transform:translateY(24px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.data-table tbody tr{animation:rowSlide 0.3s var(--ease-out) backwards}
+.data-table tbody tr:nth-child(1){animation-delay:0.02s}.data-table tbody tr:nth-child(2){animation-delay:0.04s}.data-table tbody tr:nth-child(3){animation-delay:0.06s}.data-table tbody tr:nth-child(4){animation-delay:0.08s}.data-table tbody tr:nth-child(5){animation-delay:0.1s}
+@keyframes rowSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+
 @media(max-width:1024px){.header-content{padding:0 var(--space-lg)}.page{padding:var(--space-lg)}.form-grid{grid-template-columns:1fr}.form-group.full-width{grid-column:span 1}}
 @media(max-width:768px){.header-content{flex-direction:column;gap:12px;height:auto;padding:var(--space-md) var(--space-lg)}.nav{width:100%;justify-content:center}.stats-grid{grid-template-columns:1fr 1fr}.card-header{flex-direction:column;align-items:flex-start}.filters{width:100%}.search-box{width:100%}.search-box input{width:100%}.detail-content{grid-template-columns:1fr}.modal-content{width:96%}}
 @media(max-width:480px){.logo h1{font-size:15px}.logo .subtitle{display:none}.nav-btn span:not(.material-icons){display:none}.nav-btn{padding:10px 14px}.radio-group{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr}.stat-card{padding:var(--space-md)}.stat-info h3{font-size:24px}.form{padding:var(--space-md)}}
@@ -376,6 +419,17 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
       <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
+
+  <div id="passwordModal" class="password-overlay hidden">
+    <div class="password-card">
+      <div class="lock-icon"><span class="material-icons">lock</span></div>
+      <h2>لوحة التحكم</h2>
+      <p>أدخل كلمة المرور للوصول</p>
+      <input type="password" id="dashboardPassword" class="form-input" placeholder="كلمة المرور" style="text-align:center;font-size:16px;padding:16px;margin-bottom:16px" onkeydown="if(event.key==='Enter')checkDashboardPassword()">
+      <button class="btn btn-amber btn-lg" style="width:100%" onclick="checkDashboardPassword()"><span class="material-icons">login</span> دخول</button>
+      <div id="passwordError" class="error-msg"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -390,7 +444,8 @@ var appState = {
   totalPages: 1,
   csrfToken: '',
   config: null,
-  initialized: false
+  initialized: false,
+  dashboardUnlocked: false
 };
 
 var FALLBACK_CONFIG = {
@@ -560,12 +615,13 @@ function submitRequest() {
   else if(rt==='بدل مواصلات'){ data.activityName=fd.get('activityName');data.submissionDate=fd.get('submissionDate');data.amount=fd.get('amount');data.numberOfPeople=fd.get('numberOfPeople');data.reason=fd.get('reason');data.transferNumber=fd.get('transferNumber'); }
 
   if(!validateFormData(data))return;
-  showProgress(); document.getElementById('submitBtn').disabled=true;
+  var submitBtn = document.getElementById('submitBtn');
+  showProgress(); setBtnLoading(submitBtn, true);
 
   apiCall('submitRequest', data)
     .then(function(r){
       var result=(typeof r==='string')?JSON.parse(r):r;
-      hideProgress(); document.getElementById('submitBtn').disabled=false;
+      hideProgress(); setBtnLoading(submitBtn, false);
       if(result.success){
         showToast('تم إرسال الطلب بنجاح! رقم الطلب: '+result.data.requestId,'success');
         if(result.data.csrfToken){ appState.csrfToken=result.data.csrfToken; document.getElementById('csrfToken').value=result.data.csrfToken; }
@@ -574,7 +630,7 @@ function submitRequest() {
         document.getElementById('submissionDateDisplay').value=new Date().toISOString().split('T')[0];
       } else { showToast('خطأ: '+(result.error||result.message),'error'); }
     })
-    .catch(function(){ hideProgress();document.getElementById('submitBtn').disabled=false;showToast('خطأ في الاتصال بالخادم','error'); });
+    .catch(function(){ hideProgress(); setBtnLoading(submitBtn, false); showToast('خطأ في الاتصال بالخادم','error'); });
 }
 
 function getMonthlyItems(){var tb=document.getElementById('monthlyItemsBody'),items=[];for(var i=0;i<tb.rows.length;i++){var r=tb.rows[i],cat=r.querySelector('select')?r.querySelector('select').value:'',desc=r.querySelector('input[type="text"]')?r.querySelector('input[type="text"]').value:'',cost=r.querySelector('input[type="number"]')?r.querySelector('input[type="number"]').value:0;if(cat||desc||cost)items.push({category:cat,description:desc,cost:parseFloat(cost)||0,quantity:1});}return items;}
@@ -591,6 +647,15 @@ function validateFormData(d){
 }
 
 function showPage(p){
+  if (p === 'dashboard' && !appState.dashboardUnlocked) {
+    document.getElementById('passwordModal').classList.remove('hidden');
+    document.getElementById('dashboardPassword').value = '';
+    document.getElementById('dashboardPassword').focus();
+    document.getElementById('passwordError').textContent = '';
+    document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelector('[data-page="form"]').classList.add('active');
+    return;
+  }
   document.querySelectorAll('.page').forEach(function(pg){pg.classList.remove('active');});
   document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById(p+'Page').classList.add('active');
@@ -598,7 +663,12 @@ function showPage(p){
   appState.currentPage=p;
   if(p==='dashboard')loadDashboard();
 }
-function loadDashboard(){loadStats();loadRequests();}
+function loadDashboard(){
+  document.getElementById('statsGrid').innerHTML = getStatsSkeleton();
+  document.getElementById('requestsBody').innerHTML = getTableSkeleton(5);
+  loadStats();
+  loadRequests();
+}
 
 function loadStats(){
   apiCall('getStats').then(function(r){if(r&&r.success)renderStats(r.data);}).catch(function(){});
@@ -656,23 +726,25 @@ function closeModal(){document.getElementById('requestModal').classList.remove('
 
 function updateRequestStatus(rid){
   var ns=document.getElementById('newStatus').value;
-  showProgress();
+  var btn = document.querySelector('.status-update-form .btn');
+  showProgress(); setBtnLoading(btn, true);
   apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
-    hideProgress();
+    hideProgress(); setBtnLoading(btn, false);
     if(r&&r.success){showToast('تم تحديث الحالة بنجاح','success');if(r.data&&r.data.csrfToken){appState.csrfToken=r.data.csrfToken;document.getElementById('csrfToken').value=r.data.csrfToken;}loadRequests();closeModal();}
     else{showToast('خطأ: '+(r.error||r.message),'error');}
-  }).catch(function(){hideProgress();showToast('خطأ في الاتصال','error');});
+  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
 }
 
 function sendReply(rid){
   var rb=document.getElementById('replyBody').value;
   if(!rb.trim()){showToast('يرجى كتابة رد','error');return;}
-  showProgress();
+  var btn = document.querySelector('.detail-section:last-child .btn');
+  showProgress(); setBtnLoading(btn, true);
   apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
-    hideProgress();
+    hideProgress(); setBtnLoading(btn, false);
     if(r&&r.success){showToast('تم إرسال الرد بنجاح','success');if(r.data&&r.data.csrfToken)appState.csrfToken=r.data.csrfToken;document.getElementById('replyBody').value='';}
     else{showToast('خطأ: '+(r.error||r.message),'error');}
-  }).catch(function(){hideProgress();showToast('خطأ في الاتصال','error');});
+  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
 }
 
 function showLoading(){document.getElementById('loadingOverlay').style.display='flex';}
@@ -680,13 +752,70 @@ function hideLoading(){document.getElementById('loadingOverlay').style.display='
 function showProgress(){document.getElementById('progressBar').style.display='block';document.querySelector('.progress-fill').style.width='100%';}
 function hideProgress(){document.querySelector('.progress-fill').style.width='0%';setTimeout(function(){document.getElementById('progressBar').style.display='none';},300);}
 
+function setBtnLoading(btn, loading) {
+  if (loading) {
+    btn.disabled = true;
+    btn.classList.add('btn-loading');
+    if (!btn.querySelector('.btn-spinner')) {
+      var sp = document.createElement('span');
+      sp.className = 'btn-spinner';
+      btn.appendChild(sp);
+    }
+  } else {
+    btn.disabled = false;
+    btn.classList.remove('btn-loading');
+    var sp = btn.querySelector('.btn-spinner');
+    if (sp) sp.remove();
+  }
+}
+
+function getStatsSkeleton() {
+  var h = '';
+  var colors = ['navy','amber','purple','green','red','navy'];
+  var icons = ['assignment','fiber_new','pending','check_circle','cancel','account_balance'];
+  for (var i = 0; i < 6; i++) {
+    h += '<div class="stat-card"><div class="stat-icon ' + colors[i] + '"><span class="material-icons">' + icons[i] + '</span></div><div class="stat-info"><div class="skeleton" style="width:60px;height:32px;margin-bottom:6px"></div><div class="skeleton" style="width:100px;height:14px"></div></div></div>';
+  }
+  return h;
+}
+
+function getTableSkeleton(rows) {
+  rows = rows || 5;
+  var h = '';
+  for (var i = 0; i < rows; i++) {
+    h += '<tr class="table-skeleton"><td><div class="sk-line skeleton" style="width:70px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:100px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-line skeleton" style="width:90px;height:16px"></div></td><td><div class="sk-badge skeleton"></div></td><td><div class="sk-line skeleton" style="width:80px;height:16px"></div></td><td><div class="sk-btn skeleton"></div></td></tr>';
+  }
+  return h;
+}
+
+/* Password Modal */
+var DASHBOARD_PASSWORD = 'ITUEL';
+function checkDashboardPassword() {
+  var input = document.getElementById('dashboardPassword');
+  var err = document.getElementById('passwordError');
+  if (input.value === DASHBOARD_PASSWORD) {
+    appState.dashboardUnlocked = true;
+    document.getElementById('passwordModal').classList.add('hidden');
+    input.value = '';
+    err.textContent = '';
+    loadDashboard();
+  } else {
+    err.textContent = 'كلمة المرور غير صحيحة';
+    input.style.borderColor = 'var(--danger)';
+    input.value = '';
+    input.focus();
+    setTimeout(function(){ input.style.borderColor = ''; }, 2000);
+  }
+}
+
 function showToast(message,type){
   type=type||'info';var c=document.getElementById('toastContainer');
   var icons={success:'check_circle',error:'error',warning:'warning',info:'info'};
   var t=document.createElement('div');t.className='toast '+type;
-  t.innerHTML='<span class="material-icons toast-icon">'+icons[type]+'</span><span class="toast-message">'+message+'</span><button class="toast-close" onclick="this.parentElement.remove()"><span class="material-icons">close</span></button>';
-  c.appendChild(t);setTimeout(function(){if(t.parentElement)t.remove();},4000);
+  t.innerHTML='<span class="material-icons toast-icon">'+icons[type]+'</span><span class="toast-message">'+message+'</span><button class="toast-close" onclick="dismissToast(this.parentElement)"><span class="material-icons">close</span></button>';
+  c.appendChild(t);setTimeout(function(){dismissToast(t);},4000);
 }
+function dismissToast(t){if(!t||!t.parentElement)return;t.classList.add('removing');setTimeout(function(){if(t.parentElement)t.remove();},300);}
 
 document.addEventListener('DOMContentLoaded', initApp);
 </script>
