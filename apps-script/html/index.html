@@ -713,8 +713,7 @@ function renderRequestDetails(req,rid){
     Components.createDetailItem('رقم الطلب',rid)+Components.createDetailItem('مقدم الطلب',req['Requester Name'])+Components.createDetailItem('القطاع',req['Sector'])+Components.createDetailItem('المحافظة',req['Governorate'])+Components.createDetailItem('نوع الطلب',req['Request Type'])+Components.createDetailItem('الحالة',req['Status'])+Components.createDetailItem('الإيميل',req['Requester Email'])+Components.createDetailItem('رقم الهاتف',req['Requester Phone'])+Components.createDetailItem('الملاحظات',req['Notes']));
   h+='<div id="modalItemsSection"><p style="color:var(--text-muted)">جاري تحميل البنود...</p></div>';
   h+='<div id="modalWorkflowSection"><p style="color:var(--text-muted)">جاري تحميل سجل العمليات...</p></div>';
-  h+=Components.createDetailSection('تحديث الحالة','<div class="status-update-form"><select id="newStatus" class="form-select"><option value="New">جديد</option><option value="Under Review">قيد المراجعة</option><option value="Approved">معتمد</option><option value="Rejected">مرفوض</option><option value="Completed">مكتمل</option></select><button class="btn btn-primary" onclick="updateRequestStatus(\''+rid+'\')"> تحديث الحالة</button></div>');
-  h+=Components.createDetailSection('إرسال رد','<textarea id="replyBody" class="form-textarea" rows="4" placeholder="اكتب ردك هنا..."></textarea><button class="btn btn-primary" style="margin-top:10px;" onclick="sendReply(\''+rid+'\')">إرسال الرد</button>');
+  h+=Components.createDetailSection('رد وتحديث الحالة','<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="form-label">الحالة الجديدة</label><select id="newStatus" class="form-select" style="width:100%"><option value="">— بدون تغيير —</option><option value="New">جديد</option><option value="Under Review">قيد المراجعة</option><option value="Approved">معتمد</option><option value="Rejected">مرفوض</option><option value="Completed">مكتمل</option></select></div><div><label class="form-label">الرد</label><textarea id="replyBody" class="form-textarea" rows="4" placeholder="اكتب ردك هنا..."></textarea></div><button class="btn btn-amber" onclick="sendReplyWithStatus(\''+rid+'\')" style="align-self:flex-start"><span class="material-icons">send</span> إرسال الرد والتحديث</button></div>');
   document.getElementById('modalTitle').textContent='تفاصيل الطلب - '+rid;
   document.getElementById('modalBody').innerHTML=h;
 
@@ -733,6 +732,41 @@ function updateRequestStatus(rid){
     if(r&&r.success){showToast('تم تحديث الحالة بنجاح','success');if(r.data&&r.data.csrfToken){appState.csrfToken=r.data.csrfToken;document.getElementById('csrfToken').value=r.data.csrfToken;}loadRequests();closeModal();}
     else{showToast('خطأ: '+(r.error||r.message),'error');}
   }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
+}
+
+function sendReplyWithStatus(rid){
+  var rb=document.getElementById('replyBody').value;
+  var ns=document.getElementById('newStatus').value;
+  if(!rb.trim()&&!ns){showToast('يرجى كتابة رد أو اختيار حالة','error');return;}
+  var btn=document.querySelector('.detail-section:last-child .btn');
+  showProgress();setBtnLoading(btn,true);
+
+  var promises=[];
+  if(rb.trim()){
+    promises.push(apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}));
+  }
+  if(ns){
+    promises.push(apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}));
+  }
+
+  Promise.all(promises).then(function(results){
+    hideProgress();setBtnLoading(btn,false);
+    var allOk=true;
+    results.forEach(function(r){if(!r||!r.success)allOk=false;});
+    if(allOk){
+      var msgs=[];
+      if(rb.trim())msgs.push('تم إرسال الرد');
+      if(ns)msgs.push('تم تحديث الحالة');
+      showToast(msgs.join(' و '),'success');
+      var lastResult=results[results.length-1];
+      if(lastResult&&lastResult.data&&lastResult.data.csrfToken){appState.csrfToken=lastResult.data.csrfToken;document.getElementById('csrfToken').value=lastResult.data.csrfToken;}
+      document.getElementById('replyBody').value='';
+      document.getElementById('newStatus').value='';
+      loadRequests();
+    }else{
+      showToast('حدث خطأ في إحدى العمليات','error');
+    }
+  }).catch(function(){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال','error');});
 }
 
 function sendReply(rid){
