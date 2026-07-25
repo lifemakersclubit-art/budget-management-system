@@ -709,27 +709,35 @@ function doGet(e) {
         return Utils.createSuccessResponse({ requestId: result.requestId, uuid: result.uuid, timestamp: result.timestamp, csrfToken: ntoken });
 
       case 'updateStatus':
-        if (!Validation.validateCSRF(p.csrfToken)) return Utils.createErrorResponse('Invalid CSRF');
-        if (!p.requestId||!p.newStatus) return Utils.createErrorResponse('Missing fields');
+        if (!p.requestId||!p.newStatus) return Utils.createErrorResponse('Missing fields: requestId=' + p.requestId + ', newStatus=' + p.newStatus);
+        if (!Validation.validateCSRF(p.csrfToken)) {
+          Logger.log('updateStatus CSRF failed. Token received: ' + (p.csrfToken||'EMPTY'));
+          return Utils.createErrorResponse('Invalid CSRF');
+        }
         var upd = Database.updateRequestStatus(p.requestId, p.newStatus, p.actorEmail||'');
-        if (!upd) return Utils.createErrorResponse('Not found');
-        try { ReplyService.sendStatusUpdateEmail(p.requestId, p.newStatus); } catch(em){}
+        if (!upd) return Utils.createErrorResponse('Request not found: ' + p.requestId);
+        Logger.log('updateStatus: ' + p.requestId + ' → ' + p.newStatus);
+        try { ReplyService.sendStatusUpdateEmail(p.requestId, p.newStatus); } catch(em){ Logger.log('updateStatus email err: ' + em); }
         var updToken = Validation.generateCSRFToken();
         return Utils.createSuccessResponse({ csrfToken: updToken });
 
       case 'sendReply':
-        if (!Validation.validateCSRF(p.csrfToken)) return Utils.createErrorResponse('Invalid CSRF');
         if (!p.requestId||!p.replyBody) return Utils.createErrorResponse('Missing fields');
         try {
           var reqR = Database.getRequest(p.requestId);
-          if (!reqR) return Utils.createErrorResponse('Not found');
+          if (!reqR) return Utils.createErrorResponse('Request not found: ' + p.requestId);
+          if (!Validation.validateCSRF(p.csrfToken)) {
+            Logger.log('sendReply CSRF failed. Token received: ' + (p.csrfToken||'EMPTY'));
+            return Utils.createErrorResponse('Invalid CSRF');
+          }
           Database.saveReply({ requestId: p.requestId, body: p.replyBody, fromEmail: CONFIG.EMAIL.ADMIN, isAdminReply: true });
-          EmailService.sendReplyEmail(p.requestId, p.replyBody, reqR['Thread ID']);
+          Logger.log('sendReply: Reply saved for ' + p.requestId);
+          try { EmailService.sendReplyEmail(p.requestId, p.replyBody, reqR['Thread ID']); } catch(em) { Logger.log('sendReply email err (non-fatal): ' + em); }
           var srToken = Validation.generateCSRFToken();
           return Utils.createSuccessResponse({ csrfToken: srToken });
         } catch(err) {
           Logger.log('sendReply error: ' + err.toString());
-          return Utils.createErrorResponse('حدث خطأ أثناء إرسال الرد');
+          return Utils.createErrorResponse('حدث خطأ أثناء إرسال الرد: ' + err.toString());
         }
 
       case 'getRequestPublic':
@@ -838,13 +846,13 @@ function doPost(e) {
         return Utils.createSuccessResponse({ csrfToken: nt });
 
       case 'sendReply':
-        if (!Validation.validateCSRF(data.csrfToken)) return Utils.createSuccessResponse(null, 'Invalid CSRF');
         if (!data.requestId||!data.replyBody) return Utils.createSuccessResponse(null, 'Missing fields');
         try {
           var reqR = Database.getRequest(data.requestId);
-          if (!reqR) return Utils.createSuccessResponse(null, 'Not found');
+          if (!reqR) return Utils.createSuccessResponse(null, 'Request not found');
+          if (!Validation.validateCSRF(data.csrfToken)) return Utils.createSuccessResponse(null, 'Invalid CSRF');
           Database.saveReply({ requestId: data.requestId, body: data.replyBody, fromEmail: CONFIG.EMAIL.ADMIN, isAdminReply: true });
-          EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']);
+          try { EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']); } catch(em) { Logger.log('doPost sendReply email err: ' + em); }
           var nt2 = Validation.generateCSRFToken();
           return Utils.createSuccessResponse({ csrfToken: nt2 });
         } catch(err) {

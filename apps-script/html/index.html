@@ -912,44 +912,95 @@ function sendReplyWithStatus(rid){
   var btn=document.querySelector('.detail-section:last-child .btn');
   showProgress();setBtnLoading(btn,true);
 
+  console.log('sendReplyWithStatus:',{rid:rid,reply:rb.substring(0,50),status:ns,csrfToken:appState.csrfToken?'EXISTS':'EMPTY'});
+
+  if(!appState.csrfToken){
+    hideProgress();setBtnLoading(btn,false);
+    alert('التوكن الأمني غير موجود. جاري إعادة التحميل...');
+    loadCSRFToken();
+    return;
+  }
+
   function updateToken(r){
     if(r&&r.success&&r.data&&r.data.csrfToken){
       appState.csrfToken=r.data.csrfToken;
-      document.getElementById('csrfToken').value=r.data.csrfToken;
+      console.log('CSRF token updated after',r.message||'operation');
     }
   }
 
   if(rb.trim()&&ns){
+    console.log('Sending reply THEN status update...');
     apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
+      console.log('sendReply response:',r);
       updateToken(r);
-      if(!r||!r.success){hideProgress();setBtnLoading(btn,false);showToast('خطأ في إرسال الرد: '+((r&&r.error)||''),'error');return;}
+      if(!r||!r.success){
+        hideProgress();setBtnLoading(btn,false);
+        var errMsg=(r&&r.error)||'خطأ غير معروف';
+        console.error('sendReply failed:',errMsg);
+        alert('فشل إرسال الرد:\n\n'+errMsg);
+        showToast('خطأ في إرسال الرد: '+errMsg,'error');
+        return;
+      }
+      console.log('sendReply OK, now updating status to:',ns);
       return apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken});
     }).then(function(r){
       hideProgress();setBtnLoading(btn,false);
+      console.log('updateStatus response:',r);
       if(r&&r.success){
         updateToken(r);
+        alert('تم إرسال الرد وتحديث الحالة بنجاح!');
         showToast('تم إرسال الرد وتحديث الحالة بنجاح','success');
+      }else{
+        var errMsg=(r&&r.error)||'خطأ غير معروف';
+        console.error('updateStatus failed:',errMsg);
+        alert('تم إرسال الرد لكن فشل تحديث الحالة:\n\n'+errMsg);
+        showToast('تم إرسال الرد لكن فشل تحديث الحالة: '+errMsg,'warning');
+      }
+      document.getElementById('replyBody').value='';
+      document.getElementById('newStatus').value='';
+      loadRequests();
+    }).catch(function(e){
+      hideProgress();setBtnLoading(btn,false);
+      console.error('Network error:',e);
+      alert('خطأ في الاتصال بالخادم:\n\n'+e);
+      showToast('خطأ في الاتصال بالخادم','error');
+    });
+  }else if(rb.trim()){
+    console.log('Sending reply only...');
+    apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
+      console.log('sendReply response:',r);
+      hideProgress();setBtnLoading(btn,false);
+      if(r&&r.success){
+        updateToken(r);
+        alert('تم إرسال الرد بنجاح!');
+        showToast('تم إرسال الرد بنجاح','success');
         document.getElementById('replyBody').value='';
+        loadRequests();
+      }else{
+        var errMsg=(r&&r.error)||'خطأ غير معروف';
+        console.error('sendReply failed:',errMsg);
+        alert('فشل إرسال الرد:\n\n'+errMsg);
+        showToast('خطأ: '+errMsg,'error');
+      }
+    }).catch(function(e){hideProgress();setBtnLoading(btn,false);console.error('Network error:',e);alert('خطأ في الاتصال:\n\n'+e);showToast('خطأ في الاتصال بالخادم','error');});
+  }else if(ns){
+    console.log('Updating status only to:',ns);
+    apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
+      console.log('updateStatus response:',r);
+      hideProgress();setBtnLoading(btn,false);
+      if(r&&r.success){
+        updateToken(r);
+        alert('تم تحديث الحالة بنجاح!');
+        showToast('تم تحديث الحالة بنجاح','success');
         document.getElementById('newStatus').value='';
         loadRequests();
       }else{
-        showToast('تم إرسال الرد لكن فشل تحديث الحالة: '+((r&&r.error)||''),'warning');
-        document.getElementById('replyBody').value='';
-        loadRequests();
+        var errMsg=(r&&r.error)||'خطأ غير معروف';
+        console.error('updateStatus failed:',errMsg);
+        alert('فشل تحديث الحالة:\n\n'+errMsg);
+        showToast('خطأ: '+errMsg,'error');
       }
-    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
-  }else if(rb.trim()){
-    apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
-      hideProgress();setBtnLoading(btn,false);
-      if(r&&r.success){updateToken(r);showToast('تم إرسال الرد بنجاح','success');document.getElementById('replyBody').value='';loadRequests();}
-      else{showToast('خطأ: '+((r&&r.error)||''),'error');}
-    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
-  }else if(ns){
-    apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
-      hideProgress();setBtnLoading(btn,false);
-      if(r&&r.success){updateToken(r);showToast('تم تحديث الحالة بنجاح','success');document.getElementById('newStatus').value='';loadRequests();}
-      else{showToast('خطأ: '+((r&&r.error)||''),'error');}
-    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
+    }).catch(function(e){hideProgress();setBtnLoading(btn,false);console.error('Network error:',e);alert('خطأ في الاتصال:\n\n'+e);showToast('خطأ في الاتصال بالخادم','error');});
   }
 }
 
