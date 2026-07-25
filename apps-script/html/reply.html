@@ -49,6 +49,19 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   .invalid-email{background:#fff3f3;border:1px solid #fcc;padding:var(--space-md);border-radius:var(--radius-sm);color:var(--error);text-align:center;margin-bottom:var(--space-lg);display:none}
+  .replies-section{margin-top:var(--space-xl);border-top:2px solid var(--border);padding-top:var(--space-lg)}
+  .replies-section h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:var(--space-md);display:flex;align-items:center;gap:var(--space-sm)}
+  .reply-item{background:var(--off-white);border-right:4px solid var(--amber);padding:14px;margin-bottom:var(--space-md);border-radius:var(--radius-sm)}
+  .reply-item .reply-meta{font-size:11px;color:var(--text-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+  .reply-item .reply-from{font-weight:700;color:var(--navy)}
+  .reply-item .reply-body{color:var(--text);line-height:1.7;font-size:14px}
+  .reply-item .reply-edit{margin-top:8px;display:flex;gap:8px;align-items:center}
+  .reply-item .reply-edit input{flex:1;padding:10px;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:'Almarai',sans-serif;font-size:13px}
+  .reply-item .reply-edit input:focus{outline:none;border-color:var(--navy)}
+  .btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--radius-sm)}
+  .btn-navy{background:var(--navy);color:white}
+  .btn-navy:hover{background:var(--navy-light)}
+  .no-replies{color:var(--text-muted);font-size:13px;text-align:center;padding:var(--space-md)}
 </style>
 </head>
 <body>
@@ -75,6 +88,7 @@
           <div class="info-item"><div class="label">القطاع</div><div class="value" id="infoSector">-</div></div>
           <div class="info-item"><div class="label">الحالة</div><div class="value" id="infoStatus">-</div></div>
         </div>
+        <div id="repliesList"></div>
         <div class="form-group">
           <label class="form-label" for="replyBody"><span class="material-icons" style="vertical-align:middle;font-size:18px;color:var(--amber)">chat</span> ردك</label>
           <textarea id="replyBody" class="form-textarea" placeholder="اكتب ردك هنا..."></textarea>
@@ -85,8 +99,8 @@
       </div>
       <div id="successResult" class="success-msg" style="display:none">
         <div class="icon"><span class="material-icons">check_circle</span></div>
-        <h2>تم إرسال ردك بنجاح</h2>
-        <p>شكراً لتواصلك معنا. سيتم مراجعة ردك من قبل الإدارة.</p>
+        <h2 id="successTitle">تم إرسال ردك بنجاح</h2>
+        <p id="successText">شكراً لتواصلك معنا. سيتم مراجعة ردك من قبل الإدارة.</p>
       </div>
       <div id="errorResult" class="error-msg" style="display:none">
         <div class="icon"><span class="material-icons">error</span></div>
@@ -135,6 +149,7 @@ function loadRequestInfo() {
           document.getElementById('submitReplyBtn').disabled = true;
         } else {
           document.getElementById('replyForm').style.display = 'block';
+          renderReplies(req.replies || []);
         }
       } else {
         document.getElementById('loadingState').style.display = 'none';
@@ -148,6 +163,35 @@ function loadRequestInfo() {
       document.getElementById('errorText').textContent = 'خطأ في الاتصال بالخادم';
     });
 }
+
+function renderReplies(replies) {
+  var el = document.getElementById('repliesList');
+  if (!replies || replies.length === 0) {
+    el.innerHTML = '<div class="replies-section"><h3><span class="material-icons">history</span> الردود السابقة</h3><div class="no-replies">لا توجد ردود سابقة</div></div>';
+    return;
+  }
+  var h = '<div class="replies-section"><h3><span class="material-icons">history</span> الردود السابقة (' + replies.length + ')</h3>';
+  replies.forEach(function(r, i) {
+    var from = r.from || '';
+    var isRequester = from === email;
+    var fromLabel = isRequester ? 'أنت' : 'الإدارة';
+    var date = '';
+    try { date = new Date(r.timestamp).toLocaleString('ar-EG', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e) { date = r.timestamp || ''; }
+    var body = r.body || '';
+    h += '<div class="reply-item">';
+    h += '<div class="reply-meta"><span class="reply-from">' + fromLabel + '</span><span>' + date + '</span></div>';
+    h += '<div class="reply-body">' + escHtml(body) + '</div>';
+    if (isRequester) {
+      h += '<div class="reply-edit"><input type="text" id="editReply_' + i + '" value="' + escAttr(body) + '" placeholder="عدّل ردك..."><button class="btn btn-navy btn-sm" onclick="updateReply(' + i + ', \'' + escAttr(body).replace(/'/g, "\\'") + '\')"><span class="material-icons" style="font-size:14px">edit</span> تعديل</button></div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function escHtml(t) { if (!t) return ''; var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function escAttr(t) { return (t||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function submitReply() {
   var body = document.getElementById('replyBody').value.trim();
@@ -164,6 +208,8 @@ function submitReply() {
       if (result.success) {
         document.getElementById('replyForm').style.display = 'none';
         document.getElementById('successResult').style.display = 'block';
+        document.getElementById('successTitle').textContent = 'تم إرسال ردك بنجاح';
+        document.getElementById('successText').textContent = 'شكراً لتواصلك معنا. سيتم مراجعة ردك من قبل الإدارة.';
       } else {
         document.getElementById('errorResult').style.display = 'block';
         document.getElementById('errorText').textContent = result.error || 'حدث خطأ أثناء إرسال الرد';
@@ -177,6 +223,27 @@ function submitReply() {
       btn.disabled = false;
       btn.innerHTML = '<span class="material-icons">send</span> إرسال الرد';
     });
+}
+
+function updateReply(index, oldBody) {
+  var newBody = document.getElementById('editReply_' + index).value.trim();
+  if (!newBody) { alert('لا يمكن إرسال رد فارغ'); return; }
+  if (newBody === oldBody) { alert('لم يتم تغيير النص'); return; }
+  var url = API_URL + '?action=requesterReply&requestId=' + encodeURIComponent(requestId) + '&email=' + encodeURIComponent(email) + '&replyBody=' + encodeURIComponent(newBody);
+  fetch(url)
+    .then(function(r) { return r.text(); })
+    .then(function(text) {
+      var result = JSON.parse(text);
+      if (result.success) {
+        document.getElementById('replyForm').style.display = 'none';
+        document.getElementById('successResult').style.display = 'block';
+        document.getElementById('successTitle').textContent = 'تم تعديل ردك بنجاح';
+        document.getElementById('successText').textContent = 'تم تحديث ردك وسيتم مراجعته من قبل الإدارة.';
+      } else {
+        alert(result.error || 'حدث خطأ أثناء التعديل');
+      }
+    })
+    .catch(function() { alert('خطأ في الاتصال بالخادم'); });
 }
 </script>
 </body>

@@ -17,8 +17,6 @@ var CONFIG = {
     ADMIN: 'Kareem.shair2@gmail.com',
     WATCHER_1: 'Lifemakersclub.it@gmail.com',
     WATCHER_2: 'Operationsitmlm@gmail.com',
-    WATCHER_3: 'seif2412002@gmail.com',
-    WATCHER_4: 'seif.tamer@lifemakers.org',
     SUBJECT_PREFIX: '[Budget Request]',
     FROM_NAME: 'Budget Management System'
   },
@@ -282,14 +280,42 @@ var Database = (function() {
   }
 
   function saveReply(data) {
-    sheets.replies.appendRow([generateUUID(), data.requestId, data.threadId, data.messageId, data.fromEmail, data.subject, data.body, new Date(), data.isAdminReply||false]);
-    logWorkflow(data.requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply from ' + data.fromEmail, data.fromEmail, '', '');
+    var fromEmail = data.fromEmail || data.from || data.email || '';
+    var body = data.body || data.replyBody || '';
+    var subject = data.subject || '';
+    var threadId = data.threadId || '';
+    var messageId = data.messageId || '';
+    var isAdmin = data.isAdminReply || data.isAdmin || false;
+    if (!data.requestId || !body) {
+      Logger.log('saveReply skipped: missing requestId or body');
+      return null;
+    }
+    sheets.replies.appendRow([generateUUID(), data.requestId, threadId, messageId, fromEmail, subject, body, new Date(), isAdmin]);
+    logWorkflow(data.requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply from ' + fromEmail, fromEmail, '', '');
+    return true;
   }
 
   function getReplies(requestId) {
-    var data = sheets.replies.getDataRange().getValues(), headers = data[0], results = [];
-    for (var i = 1; i < data.length; i++) { if (data[i][1] === requestId) { var r = {}; for (var j = 0; j < headers.length; j++) r[headers[j]] = data[i][j]; results.push(r); } }
-    return results;
+    if (!requestId) return [];
+    try {
+      var data = sheets.replies.getDataRange().getValues(), headers = data[0], results = [];
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][1] === requestId) {
+          var r = {};
+          for (var j = 0; j < headers.length; j++) r[headers[j]] = data[i][j];
+          r.from = r['From Email'] || '';
+          r.body = r['Body'] || '';
+          r.timestamp = r['Timestamp'] || '';
+          r.isAdminReply = r['Is Admin Reply'] || false;
+          r.replyId = r['Reply ID'] || '';
+          results.push(r);
+        }
+      }
+      return results;
+    } catch(e) {
+      Logger.log('getReplies error: ' + e.toString());
+      return [];
+    }
   }
 
   function getWorkflowLog(requestId) {
@@ -424,8 +450,6 @@ var EmailService = (function() {
       var threadId = adminThread.getId();
       try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_1, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
       try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_2, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_3, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_4, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
       Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.EMAIL_SENT, 'Email sent to '+CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.ADMIN, '', '');
       return { threadId: threadId, messageId: threadId };
     } catch(e) { Logger.log('Email error: '+e.toString()); throw e; }
@@ -488,17 +512,33 @@ var EmailService = (function() {
       var statusColors = { 'New':'#3498DB', 'Under Review':'#F39C12', 'Approved':'#2ECC71', 'Rejected':'#E74C3C', 'Completed':'#2ECC71' };
       var statusColor = statusColors[requestStatus] || '#3498DB';
       var replyPageUrl = 'https://lifemakersclubit-art.github.io/budget-management-system/reply.html?requestId='+encodeURIComponent(requestId)+'&email='+encodeURIComponent(requesterEmail);
+      var sheetUrl = 'https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
       var subject = CONFIG.EMAIL.SUBJECT_PREFIX+' '+requestId+' - رد على طلبك ['+statusArabic+']';
-      var plainBody = 'مرحبا '+requesterName+'\n\nرد على طلبك رقم '+requestId+'\nالحالة: '+statusArabic+'\n\n'+replyBody+'\n\nالرد على الطلب: '+replyPageUrl+'\n\nفتح الجدول: https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit';
-      var htmlBody = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;"><div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);"><div style="background:linear-gradient(135deg,#014976,#016199);color:white;padding:25px;text-align:center;"><h1 style="margin:0;font-size:20px;">رد على طلبك '+requestId+'</h1></div><div style="padding:25px;"><div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div><div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;"><div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">نوع الطلب</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(requestType)+'</div></div><div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">القطاع</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(sector)+'</div></div></div><div style="text-align:center;margin-bottom:20px;"><span style="display:inline-block;background:'+statusColor+';color:white;padding:6px 20px;border-radius:20px;font-size:13px;font-weight:bold;">الحالة: '+statusArabic+'</span></div><div style="background:#f8f9fa;border-right:4px solid #FBAE42;padding:15px;margin:15px 0;border-radius:4px;"><div style="font-size:12px;color:#5f6368;margin-bottom:6px;font-weight:bold;">الرد:</div><p style="margin:0;color:#202124;line-height:1.8;font-size:15px;">'+esc(replyBody)+'</p></div><div style="text-align:center;margin-top:20px;"><a href="https://docs.google.com/spreadsheets/d/'+CONFIG.SPREADSHEET_ID+'/edit" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">عرض التفاصيل</a></div></div><div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div></div></body></html>';
-      var opts = { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME };
+      var plainBody = 'مرحبا '+requesterName+'\n\nرد على طلبك رقم '+requestId+'\nالنوع: '+requestType+'\nالقطاع: '+sector+'\nالحالة: '+statusArabic+'\n\n'+replyBody+'\n\nالرد على الطلب: '+replyPageUrl+'\nفتح الجدول: '+sheetUrl;
+      var h = '';
+      h += '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;">';
+      h += '<div style="max-width:600px;margin:0 auto;background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);">';
+      h += '<div style="background:linear-gradient(135deg,#014976,#016199);color:white;padding:25px;text-align:center;">';
+      h += '<h1 style="margin:0;font-size:20px;">رد على طلبك '+requestId+'</h1></div>';
+      h += '<div style="padding:25px;">';
+      h += '<div style="margin-bottom:15px;font-size:14px;color:#5f6368;">مرحبا '+esc(requesterName)+'</div>';
+      h += '<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">';
+      h += '<div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">نوع الطلب</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(requestType)+'</div></div>';
+      h += '<div style="background:#f8f9fa;padding:12px 16px;border-radius:8px;flex:1;min-width:140px;"><div style="font-size:11px;color:#5f6368;margin-bottom:4px;">القطاع</div><div style="font-size:14px;font-weight:bold;color:#202124;">'+esc(sector)+'</div></div>';
+      h += '</div>';
+      h += '<div style="text-align:center;margin-bottom:20px;"><span style="display:inline-block;background:'+statusColor+';color:white;padding:6px 20px;border-radius:20px;font-size:13px;font-weight:bold;">الحالة: '+statusArabic+'</span></div>';
+      h += '<div style="background:#f8f9fa;border-right:4px solid #FBAE42;padding:15px;margin:15px 0;border-radius:4px;"><div style="font-size:12px;color:#5f6368;margin-bottom:6px;font-weight:bold;">الرد:</div><p style="margin:0;color:#202124;line-height:1.8;font-size:15px;">'+esc(replyBody)+'</p></div>';
+      h += '<div style="text-align:center;margin-top:25px;"><a href="'+replyPageUrl+'" style="display:inline-block;background:#FBAE42;color:#012e52;padding:12px 30px;border-radius:6px;text-decoration:none;font-size:15px;font-weight:bold;">الرد على هذا الطلب</a></div>';
+      h += '<div style="text-align:center;margin-top:12px;"><a href="'+sheetUrl+'" style="display:inline-block;background:#014976;color:white;padding:10px 25px;border-radius:6px;text-decoration:none;font-size:14px;">فتح الجدول</a></div>';
+      h += '</div>';
+      h += '<div style="background:#f8f9fa;padding:15px;text-align:center;font-size:12px;color:#5f6368;"><p>هذا إيميل تلقائي من نظام إدارة الطلبات</p></div>';
+      h += '</div></body></html>';
+      var opts = { htmlBody: h, name: CONFIG.EMAIL.FROM_NAME };
 
       var recipients = [];
       if (requesterEmail) recipients.push(requesterEmail);
       recipients.push(CONFIG.EMAIL.WATCHER_1);
       recipients.push(CONFIG.EMAIL.WATCHER_2);
-      recipients.push(CONFIG.EMAIL.WATCHER_3);
-      recipients.push(CONFIG.EMAIL.WATCHER_4);
 
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
@@ -580,8 +620,6 @@ var ReplyService = (function() {
       if (requesterEmail) recipients.push(requesterEmail);
       recipients.push(CONFIG.EMAIL.WATCHER_1);
       recipients.push(CONFIG.EMAIL.WATCHER_2);
-      recipients.push(CONFIG.EMAIL.WATCHER_3);
-      recipients.push(CONFIG.EMAIL.WATCHER_4);
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
 
@@ -680,34 +718,47 @@ function doGet(e) {
       case 'sendReply':
         if (!Validation.validateCSRF(p.csrfToken)) return Utils.createErrorResponse('Invalid CSRF');
         if (!p.requestId||!p.replyBody) return Utils.createErrorResponse('Missing fields');
-        var reqR = Database.getRequest(p.requestId);
-        if (!reqR) return Utils.createErrorResponse('Not found');
-        Database.saveReply({ requestId: p.requestId, body: p.replyBody, from: CONFIG.EMAIL.ADMIN, timestamp: new Date().toISOString() });
-        EmailService.sendReplyEmail(p.requestId, p.replyBody, reqR['Thread ID']);
-        var srToken = Validation.generateCSRFToken();
-        return Utils.createSuccessResponse({ csrfToken: srToken });
+        try {
+          var reqR = Database.getRequest(p.requestId);
+          if (!reqR) return Utils.createErrorResponse('Not found');
+          Database.saveReply({ requestId: p.requestId, body: p.replyBody, fromEmail: CONFIG.EMAIL.ADMIN, isAdminReply: true });
+          EmailService.sendReplyEmail(p.requestId, p.replyBody, reqR['Thread ID']);
+          var srToken = Validation.generateCSRFToken();
+          return Utils.createSuccessResponse({ csrfToken: srToken });
+        } catch(err) {
+          Logger.log('sendReply error: ' + err.toString());
+          return Utils.createErrorResponse('حدث خطأ أثناء إرسال الرد');
+        }
 
       case 'getRequestPublic':
         var pubReq = Database.getRequest(p.requestId);
         if (!pubReq) return Utils.createErrorResponse('طلب غير موجود');
+        var pubReplies = Database.getReplies(p.requestId);
         return Utils.createSuccessResponse({
           requestId: pubReq['Request ID'],
           requesterName: pubReq['Requester Name'],
+          requesterEmail: pubReq['Requester Email'],
           requestType: pubReq['Request Type'],
           sector: pubReq['Sector'],
           status: pubReq['Status'],
-          governorate: pubReq['Governorate']
+          governorate: pubReq['Governorate'],
+          replies: pubReplies
         });
 
       case 'requesterReply':
         if (!p.requestId || !p.replyBody || !p.email) return Utils.createErrorResponse('جميع الحقول مطلوبة');
-        var rr = Database.getRequest(p.requestId);
-        if (!rr) return Utils.createErrorResponse('طلب غير موجود');
-        if (rr['Requester Email'] !== p.email) return Utils.createErrorResponse('البريد الإلكتروني غير متطابق');
-        Database.saveReply({ requestId: p.requestId, body: p.replyBody, from: p.email, timestamp: new Date().toISOString() });
-        try { EmailService.sendReplyEmail(p.requestId, p.replyBody, rr['Thread ID']); } catch(em) { Logger.log('Reply email err: ' + em); }
-        Database.logWorkflow(p.requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply from requester: ' + p.email, p.email, p.replyBody, '');
-        return Utils.createSuccessResponse({ message: 'تم إرسال ردك بنجاح' });
+        try {
+          var rr = Database.getRequest(p.requestId);
+          if (!rr) return Utils.createErrorResponse('طلب غير موجود');
+          if (rr['Requester Email'] !== p.email) return Utils.createErrorResponse('البريد الإلكتروني غير متطابق');
+          var saved = Database.saveReply({ requestId: p.requestId, body: p.replyBody, fromEmail: p.email, isAdminReply: false });
+          if (!saved) return Utils.createErrorResponse('حدث خطأ أثناء حفظ الرد');
+          try { EmailService.sendReplyEmail(p.requestId, p.replyBody, rr['Thread ID']); } catch(em) { Logger.log('Reply email err: ' + em); }
+          return Utils.createSuccessResponse({ message: 'تم إرسال ردك بنجاح' });
+        } catch(err) {
+          Logger.log('requesterReply error: ' + err.toString());
+          return Utils.createErrorResponse('حدث خطأ غير متوقع');
+        }
 
       default:
         return Utils.createSuccessResponse({ status: 'Budget Management API is running', version: '2.0' });
@@ -787,12 +838,17 @@ function doPost(e) {
       case 'sendReply':
         if (!Validation.validateCSRF(data.csrfToken)) return Utils.createSuccessResponse(null, 'Invalid CSRF');
         if (!data.requestId||!data.replyBody) return Utils.createSuccessResponse(null, 'Missing fields');
-        var reqR = Database.getRequest(data.requestId);
-        if (!reqR) return Utils.createSuccessResponse(null, 'Not found');
-        Database.saveReply({ requestId: data.requestId, body: data.replyBody, from: CONFIG.EMAIL.ADMIN, timestamp: new Date().toISOString() });
-        EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']);
-        var nt2 = Validation.generateCSRFToken();
-        return Utils.createSuccessResponse({ csrfToken: nt2 });
+        try {
+          var reqR = Database.getRequest(data.requestId);
+          if (!reqR) return Utils.createSuccessResponse(null, 'Not found');
+          Database.saveReply({ requestId: data.requestId, body: data.replyBody, fromEmail: CONFIG.EMAIL.ADMIN, isAdminReply: true });
+          EmailService.sendReplyEmail(data.requestId, data.replyBody, reqR['Thread ID']);
+          var nt2 = Validation.generateCSRFToken();
+          return Utils.createSuccessResponse({ csrfToken: nt2 });
+        } catch(err) {
+          Logger.log('doPost sendReply error: ' + err.toString());
+          return Utils.createSuccessResponse(null, 'حدث خطأ أثناء إرسال الرد');
+        }
 
       case 'getItems':
         var items = Database.getItems(data.requestId);
@@ -836,5 +892,118 @@ function onOpen() {
     .addItem('Setup Triggers','setupTriggers')
     .addItem('Init System','init')
     .addItem('Check Replies','checkReplies')
+    .addItem('Test: Create 4 Entries','createTestEntries')
     .addToUi();
+}
+
+function createTestEntries() {
+  init();
+  var now = new Date();
+
+  var entries = [
+    {
+      requestType: 'ميزانية شهرية',
+      sector: 'اللجان المركزية',
+      governorate: 'القاهرة',
+      university: 'فريق مركزي',
+      requesterName: 'أحمد محمد علي',
+      requesterEmail: 'ahmed.test@example.com',
+      requesterPhone: '01012345678',
+      amount: 15000,
+      notes: 'ميزانية شهر يوليو لنشاط اللجان المركزية',
+      budgetMonth: 'يوليو 2026',
+      items: [
+        { category: 'إيفنت', description: 'تنظيم ورشة عمل', cost: 5000 },
+        { category: 'مطبوعات', description: 'طباعة مطويات', cost: 3000 },
+        { category: 'لوجستيك', description: 'نقل وأILogISTICS', cost: 2000 }
+      ]
+    },
+    {
+      requestType: 'ميزانية عاجلة',
+      sector: 'التوسع',
+      governorate: 'الإسكندرية',
+      university: 'جامعة الإسكندرية',
+      requesterName: 'سارة أحمد حسن',
+      requesterEmail: 'sara.test@example.com',
+      requesterPhone: '01098765432',
+      amount: 8500,
+      notes: 'احتياج عاجل لنشاط التوسع في الإسكندرية خلال هذا الأسبوع',
+      activityName: 'حملة التوسع - الإسكندرية',
+      deadline: '2026-07-30',
+      items: []
+    },
+    {
+      requestType: 'احتياج فني',
+      sector: 'قطاع بحري',
+      governorate: 'دمياط',
+      university: 'جامعة المنصورة',
+      requesterName: 'محمد إبراهيم سعيد',
+      requesterEmail: 'mohamed.test@example.com',
+      requesterPhone: '01155544433',
+      amount: 0,
+      notes: 'احتياج فني لتجهيزات قاعات التدريب',
+      committee: 'IT',
+      technicalNeed: 'تجهيز نظام صوتي لقاعة التدريب الرئيسية بسعة 200 شخص مع شاشة عرض وبروجكتور',
+      executionDate: '2026-08-05',
+      items: []
+    },
+    {
+      requestType: 'بدل مواصلات',
+      sector: 'التفعيل',
+      governorate: 'الجيزة',
+      university: 'جامعة القاهرة',
+      requesterName: 'نورا خالد عبدالرحمن',
+      requesterEmail: 'noura.test@example.com',
+      requesterPhone: '01222333444',
+      amount: 6000,
+      notes: 'بدل مواصلات لأعضاء فريق التفعيل',
+      activityName: 'ورشة التفعيل - الجيزة',
+      numberOfPeople: 15,
+      reason: 'تنقل الأعضاء بين الفروع أثناء النشاط',
+      items: []
+    }
+  ];
+
+  var createdIds = [];
+
+  entries.forEach(function(entry, index) {
+    try {
+      var requestId = generateRequestId();
+      var uuid = generateUUID();
+      var extras = JSON.stringify({
+        deadline: entry.deadline || '',
+        activityName: entry.activityName || '',
+        committee: entry.committee || '',
+        technicalNeed: entry.technicalNeed || '',
+        executionDate: entry.executionDate || '',
+        numberOfPeople: entry.numberOfPeople || '',
+        reason: entry.reason || '',
+        budgetMonth: entry.budgetMonth || ''
+      });
+      var row = [
+        requestId, uuid, now, entry.requestType, entry.sector, entry.governorate,
+        entry.amount || 0, entry.notes || '', entry.requesterName, entry.requesterEmail,
+        entry.requesterPhone, CONFIG.STATUS.NEW, '', '',
+        entry.items ? entry.items.length : 0, entry.deadline || '', false,
+        entry.notes || '', extras, now, now
+      ];
+      sheets.requests.appendRow(row);
+
+      if (entry.items && entry.items.length > 0) {
+        saveItems(requestId, entry.items);
+      }
+
+      logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.CREATED, 'Test entry #' + (index+1), 'system@test.com', '', CONFIG.STATUS.NEW);
+
+      createdIds.push(requestId);
+      Logger.log('Created test entry: ' + requestId + ' - ' + entry.requesterName + ' (' + entry.requestType + ')');
+    } catch(e) {
+      Logger.log('Error creating test entry #' + (index+1) + ': ' + e.toString());
+    }
+  });
+
+  Logger.log('=== Created ' + createdIds.length + ' test entries ===');
+  createdIds.forEach(function(id) { Logger.log(id); });
+  SpreadsheetApp.getUi().alert('تم إنشاء ' + createdIds.length + ' تسجيلات تجريبية بنجاح!\n\n' + createdIds.join('\n'));
+  return createdIds;
 }
