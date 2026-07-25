@@ -865,11 +865,26 @@ function viewRequest(rid){
 
 function renderRequestDetails(req,rid){
   rid=rid||req['Request ID']||'';
+  var currentStatus=req['Status']||'New';
+  var statusLabels={'New':'جديد','Under Review':'قيد المراجعة','Approved':'معتمد','Rejected':'مرفوض','Completed':'مكتمل'};
+  var statusColors={'New':'#3498DB','Under Review':'#F39C12','Approved':'#2ECC71','Rejected':'#E74C3C','Completed':'#2ECC71'};
+
   var h=Components.createDetailSection('البيانات الأساسية',
-    Components.createDetailItem('رقم الطلب',rid)+Components.createDetailItem('مقدم الطلب',req['Requester Name'])+Components.createDetailItem('القطاع',req['Sector'])+Components.createDetailItem('المحافظة',req['Governorate'])+Components.createDetailItem('نوع الطلب',req['Request Type'])+Components.createDetailItem('الحالة',req['Status'])+Components.createDetailItem('الإيميل',req['Requester Email'])+Components.createDetailItem('رقم الهاتف',req['Requester Phone'])+Components.createDetailItem('الملاحظات',req['Notes']));
+    Components.createDetailItem('رقم الطلب',rid)+Components.createDetailItem('مقدم الطلب',req['Requester Name'])+Components.createDetailItem('القطاع',req['Sector'])+Components.createDetailItem('المحافظة',req['Governorate'])+Components.createDetailItem('نوع الطلب',req['Request Type'])+
+    '<div class="detail-item"><span class="detail-label">الحالة الحالية</span><span class="detail-value"><span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;color:white;background:'+(statusColors[currentStatus]||'#3498DB')+'">'+(statusLabels[currentStatus]||currentStatus)+'</span></span></div>'+
+    Components.createDetailItem('الإيميل',req['Requester Email'])+Components.createDetailItem('رقم الهاتف',req['Requester Phone'])+Components.createDetailItem('الملاحظات',req['Notes']));
+
   h+='<div id="modalItemsSection"><p style="color:var(--text-muted)">جاري تحميل البنود...</p></div>';
   h+='<div id="modalWorkflowSection"><p style="color:var(--text-muted)">جاري تحميل سجل العمليات...</p></div>';
-  h+=Components.createDetailSection('رد وتحديث الحالة','<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="form-label">الحالة الجديدة</label><select id="newStatus" class="form-select" style="width:100%"><option value="">— بدون تغيير —</option><option value="New">جديد</option><option value="Under Review">قيد المراجعة</option><option value="Approved">معتمد</option><option value="Rejected">مرفوض</option><option value="Completed">مكتمل</option></select></div><div><label class="form-label">الرد</label><textarea id="replyBody" class="form-textarea" rows="4" placeholder="اكتب ردك هنا..."></textarea></div><button class="btn btn-amber" onclick="sendReplyWithStatus(\''+rid+'\')" style="align-self:flex-start"><span class="material-icons">send</span> إرسال الرد والتحديث</button></div>');
+
+  var statusOpts='<option value="">— بدون تغيير —</option>';
+  var allStatuses=[{v:'New',l:'جديد'},{v:'Under Review',l:'قيد المراجعة'},{v:'Approved',l:'معتمد'},{v:'Rejected',l:'مرفوض'},{v:'Completed',l:'مكتمل'}];
+  allStatuses.forEach(function(s){
+    var isCurrent=s.v===currentStatus;
+    statusOpts+='<option value="'+s.v+'" '+(isCurrent?'disabled style="color:#999"':'')+'>'+s.l+(isCurrent?' (الحالية)':'')+'</option>';
+  });
+
+  h+=Components.createDetailSection('رد وتحديث الحالة','<div style="display:flex;flex-direction:column;gap:14px;"><div><label class="form-label">الحالة الجديدة</label><select id="newStatus" class="form-select" style="width:100%">'+statusOpts+'</select></div><div><label class="form-label">الرد</label><textarea id="replyBody" class="form-textarea" rows="4" placeholder="اكتب ردك هنا..."></textarea></div><button class="btn btn-amber" onclick="sendReplyWithStatus(\''+rid+'\')" style="align-self:flex-start"><span class="material-icons">send</span> إرسال الرد والتحديث</button></div>');
   document.getElementById('modalTitle').textContent='تفاصيل الطلب - '+rid;
   document.getElementById('modalBody').innerHTML=h;
 
