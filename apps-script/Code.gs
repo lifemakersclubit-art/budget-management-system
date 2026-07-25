@@ -157,13 +157,18 @@ var Database = (function() {
   }
 
   function generateRequestId() {
-    var now = new Date();
-    var y = now.getFullYear();
-    var m = String(now.getMonth() + 1).padStart(2, '0');
-    var key = 'rc_' + y + '_' + m;
-    var c = parseInt(cache.get(key) || '0') + 1;
-    cache.put(key, c, 21600);
-    return 'REQ-' + y + m + '-' + String(c).padStart(4, '0');
+    var lock = LockService.getScriptLock();
+    try { lock.waitLock(10000); } catch(e) {}
+    try {
+      var now = new Date();
+      var y = now.getFullYear();
+      var m = String(now.getMonth() + 1).padStart(2, '0');
+      var props = PropertiesService.getScriptProperties();
+      var key = 'rc_' + y + '_' + m;
+      var c = parseInt(props.getProperty(key) || '0') + 1;
+      props.setProperty(key, String(c));
+      return 'REQ-' + y + m + '-' + String(c).padStart(4, '0');
+    } finally { try { lock.releaseLock(); } catch(e) {} }
   }
 
   function generateUUID() { return Utilities.getUuid(); }
