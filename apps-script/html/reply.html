@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الرد على الطلب - نظام إدارة الطلبات</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{--navy:#014976;--navy-light:#016199;--navy-dark:#012e52;--off-white:#F4F3EF;--amber:#FBAE42;--amber-light:#fcd08a;--text:#202124;--text-secondary:#5f6368;--text-muted:#80868b;--bg:var(--off-white);--card:#fff;--border:#dadce0;--success:#34a853;--error:#ea4335;--purple:#7b61ff;--space-xs:4px;--space-sm:8px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;--radius-sm:6px;--radius-md:10px;--radius-lg:16px;--shadow-sm:0 1px 3px rgba(0,0,0,0.08);--shadow-md:0 4px 12px rgba(0,0,0,0.1);--shadow-lg:0 8px 30px rgba(0,0,0,0.12);--shadow-xl:0 12px 40px rgba(0,0,0,0.15);--transition:0.25s cubic-bezier(0.4,0,0.2,1)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Almarai','Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:var(--space-lg)}
+  .container{max-width:600px;width:100%}
+  .card{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden;animation:slideUp 0.5s ease}
+  .card-header{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;padding:var(--space-xl) var(--space-lg);text-align:center}
+  .card-header h1{font-family:'Outfit',sans-serif;font-size:22px;margin-bottom:var(--space-xs)}
+  .card-header .subtitle{font-size:13px;opacity:0.8}
+  .card-header .request-id{display:inline-block;background:rgba(255,255,255,0.15);padding:4px 14px;border-radius:20px;margin-top:var(--space-sm);font-size:14px;font-weight:600}
+  .card-body{padding:var(--space-xl) var(--space-lg)}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-xl)}
+  .info-item{background:var(--off-white);padding:12px;border-radius:var(--radius-sm)}
+  .info-item .label{font-size:11px;color:var(--text-muted);margin-bottom:3px}
+  .info-item .value{font-size:14px;font-weight:700;color:var(--text)}
+  .status-badge{display:inline-block;padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600;color:white}
+  .status-New{background:#3498DB}
+  .status-Under{background:#F39C12}
+  .status-Approved{background:#2ECC71}
+  .status-Rejected{background:#E74C3C}
+  .status-Completed{background:#2ECC71}
+  .form-group{margin-bottom:var(--space-lg)}
+  .form-label{display:block;font-size:14px;font-weight:700;color:var(--text);margin-bottom:var(--space-sm)}
+  .form-textarea{width:100%;min-height:120px;padding:14px;border:2px solid var(--border);border-radius:var(--radius-md);font-family:'Almarai',sans-serif;font-size:14px;color:var(--text);resize:vertical;transition:var(--transition);background:var(--card)}
+  .form-textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(1,73,118,0.1)}
+  .btn{display:inline-flex;align-items:center;gap:var(--space-sm);padding:12px 28px;border:none;border-radius:var(--radius-md);font-family:'Almarai',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:var(--transition)}
+  .btn-amber{background:var(--amber);color:var(--navy-dark)}
+  .btn-amber:hover{background:#e5a03d;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+  .btn .material-icons{font-size:18px}
+  .success-msg{text-align:center;padding:var(--space-xl);animation:slideUp 0.4s ease}
+  .success-msg .icon{font-size:64px;color:var(--success);margin-bottom:var(--space-md)}
+  .success-msg h2{font-family:'Outfit',sans-serif;color:var(--text);margin-bottom:var(--space-sm)}
+  .success-msg p{color:var(--text-secondary);font-size:14px}
+  .error-msg{text-align:center;padding:var(--space-xl);animation:slideUp 0.4s ease}
+  .error-msg .icon{font-size:64px;color:var(--error);margin-bottom:var(--space-md)}
+  .error-msg h2{font-family:'Outfit',sans-serif;color:var(--text);margin-bottom:var(--space-sm)}
+  .error-msg p{color:var(--text-secondary);font-size:14px}
+  .loading{text-align:center;padding:var(--space-2xl);color:var(--text-secondary)}
+  .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto var(--space-md)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .invalid-email{background:#fff3f3;border:1px solid #fcc;padding:var(--space-md);border-radius:var(--radius-sm);color:var(--error);text-align:center;margin-bottom:var(--space-lg);display:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h1>الرد على الطلب</h1>
+      <div class="subtitle">Budget Management System</div>
+      <div class="request-id" id="displayRequestId">جاري التحميل...</div>
+    </div>
+    <div class="card-body" id="cardBody">
+      <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <p>جاري تحميل بيانات الطلب...</p>
+      </div>
+      <div id="invalidEmailMsg" class="invalid-email">
+        <span class="material-icons" style="vertical-align:middle">error</span>
+        البريد الإلكتروني غير متطابق مع بيانات مقدم الطلب
+      </div>
+      <div id="replyForm" style="display:none">
+        <div class="info-grid">
+          <div class="info-item"><div class="label">مقدم الطلب</div><div class="value" id="infoName">-</div></div>
+          <div class="info-item"><div class="label">نوع الطلب</div><div class="value" id="infoType">-</div></div>
+          <div class="info-item"><div class="label">القطاع</div><div class="value" id="infoSector">-</div></div>
+          <div class="info-item"><div class="label">الحالة</div><div class="value" id="infoStatus">-</div></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="replyBody"><span class="material-icons" style="vertical-align:middle;font-size:18px;color:var(--amber)">chat</span> ردك</label>
+          <textarea id="replyBody" class="form-textarea" placeholder="اكتب ردك هنا..."></textarea>
+        </div>
+        <button class="btn btn-amber" id="submitReplyBtn" onclick="submitReply()" style="width:100%;justify-content:center">
+          <span class="material-icons">send</span> إرسال الرد
+        </button>
+      </div>
+      <div id="successResult" class="success-msg" style="display:none">
+        <div class="icon"><span class="material-icons">check_circle</span></div>
+        <h2>تم إرسال ردك بنجاح</h2>
+        <p>شكراً لتواصلك معنا. سيتم مراجعة ردك من قبل الإدارة.</p>
+      </div>
+      <div id="errorResult" class="error-msg" style="display:none">
+        <div class="icon"><span class="material-icons">error</span></div>
+        <h2>حدث خطأ</h2>
+        <p id="errorText">يرجى المحاولة مرة أخرى</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbyc3P0K2iBe7fG4-ncbTZ4qEeOvXdKf_UBwPBBEYs29qGY05MVmAZ7TkEL-O5nSnsfX7w/exec';
+var params = new URLSearchParams(window.location.search);
+var requestId = params.get('requestId') || '';
+var email = params.get('email') || '';
+
+(function init() {
+  if (!requestId || !email) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorResult').style.display = 'block';
+    document.getElementById('errorText').textContent = 'رابط غير صالح. يرجى التحقق من الرابط المرسل في الإيميل.';
+    return;
+  }
+  loadRequestInfo();
+})();
+
+function loadRequestInfo() {
+  var url = API_URL + '?action=getRequestPublic&requestId=' + encodeURIComponent(requestId);
+  fetch(url)
+    .then(function(r) { return r.text(); })
+    .then(function(text) {
+      var result = JSON.parse(text);
+      if (result.success && result.data) {
+        var req = result.data;
+        document.getElementById('displayRequestId').textContent = req.requestId;
+        document.getElementById('infoName').textContent = req.requesterName || '-';
+        document.getElementById('infoType').textContent = req.requestType || '-';
+        document.getElementById('infoSector').textContent = req.sector || '-';
+        var st = req.status || 'New';
+        var labels = {'New':'جديد','Under Review':'قيد المراجعة','Approved':'معتمد','Rejected':'مرفوض','Completed':'مكتمل'};
+        var stEl = document.getElementById('infoStatus');
+        stEl.innerHTML = '<span class="status-badge status-' + st.replace(' ','') + '">' + (labels[st] || st) + '</span>';
+        document.getElementById('loadingState').style.display = 'none';
+        if (req.requesterEmail !== email) {
+          document.getElementById('invalidEmailMsg').style.display = 'block';
+          document.getElementById('submitReplyBtn').disabled = true;
+        } else {
+          document.getElementById('replyForm').style.display = 'block';
+        }
+      } else {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('errorResult').style.display = 'block';
+        document.getElementById('errorText').textContent = result.error || 'طلب غير موجود';
+      }
+    })
+    .catch(function() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorResult').style.display = 'block';
+      document.getElementById('errorText').textContent = 'خطأ في الاتصال بالخادم';
+    });
+}
+
+function submitReply() {
+  var body = document.getElementById('replyBody').value.trim();
+  if (!body) { alert('يرجى كتابة رد'); return; }
+  var btn = document.getElementById('submitReplyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0"></div> جاري الإرسال...';
+
+  var url = API_URL + '?action=requesterReply&requestId=' + encodeURIComponent(requestId) + '&email=' + encodeURIComponent(email) + '&replyBody=' + encodeURIComponent(body);
+  fetch(url)
+    .then(function(r) { return r.text(); })
+    .then(function(text) {
+      var result = JSON.parse(text);
+      if (result.success) {
+        document.getElementById('replyForm').style.display = 'none';
+        document.getElementById('successResult').style.display = 'block';
+      } else {
+        document.getElementById('errorResult').style.display = 'block';
+        document.getElementById('errorText').textContent = result.error || 'حدث خطأ أثناء إرسال الرد';
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons">send</span> إرسال الرد';
+      }
+    })
+    .catch(function() {
+      document.getElementById('errorResult').style.display = 'block';
+      document.getElementById('errorText').textContent = 'خطأ في الاتصال بالخادم';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">send</span> إرسال الرد';
+    });
+}
+</script>
+</body>
+</html>
