@@ -163,11 +163,15 @@ var Database = (function() {
       var now = new Date();
       var y = now.getFullYear();
       var m = String(now.getMonth() + 1).padStart(2, '0');
+      var d = String(now.getDate()).padStart(2, '0');
+      var hh = String(now.getHours()).padStart(2, '0');
+      var mm = String(now.getMinutes()).padStart(2, '0');
+      var ss = String(now.getSeconds()).padStart(2, '0');
       var props = PropertiesService.getScriptProperties();
-      var key = 'rc_' + y + '_' + m;
-      var c = parseInt(props.getProperty(key) || '0') + 1;
-      props.setProperty(key, String(c));
-      return 'REQ-' + y + m + '-' + String(c).padStart(4, '0');
+      var seqKey = 'rc_' + y + m + d;
+      var c = parseInt(props.getProperty(seqKey) || '0') + 1;
+      props.setProperty(seqKey, String(c));
+      return 'REQ-' + y + m + d + '-' + hh + mm + ss + '-' + String(c).padStart(4, '0');
     } finally { try { lock.releaseLock(); } catch(e) {} }
   }
 
@@ -587,7 +591,7 @@ var ReplyService = (function() {
     } catch(e) { Logger.log('Status update email error: '+e.toString()); }
   }
 
-  function extractRequestId(subject) { if (!subject) return null; var m = subject.match(/REQ-\d{6}-\d{4}/); return m ? m[0] : null; }
+  function extractRequestId(subject) { if (!subject) return null; var m = subject.match(/REQ-\d{8}-\d{6}-\d{4}/); return m ? m[0] : null; }
 
   return { checkForReplies:checkForReplies, sendStatusUpdateEmail:sendStatusUpdateEmail };
 })();

@@ -95,6 +95,7 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .stat-icon.green{background:linear-gradient(135deg,#27AE60,#2ECC71)}
 .stat-icon.red{background:linear-gradient(135deg,#C0392B,#E74C3C)}
 .stat-icon.purple{background:linear-gradient(135deg,#6C3483,#8E44AD)}
+.stat-icon.teal{background:linear-gradient(135deg,#00897B,#26A69A)}
 .stat-info h3{font-family:var(--font-display);font-size:30px;font-weight:800;color:var(--navy-deep);line-height:1.1;letter-spacing:-1px}
 .stat-info p{color:var(--text-muted);font-size:13px;font-weight:600;margin-top:4px}
 
@@ -695,6 +696,7 @@ function renderStats(s){
   h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة');
   h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة');
   h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة');
+  h+=Components.createStatCard('task_alt','teal',s.completed,'مكتملة');
   h+=Components.createStatCard('account_balance','navy',s.totalAmount.toFixed(2),'إجمالي المبالغ');
   document.getElementById('statsGrid').innerHTML=h;
 }
