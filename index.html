@@ -455,7 +455,7 @@ var FALLBACK_CONFIG = {
   statuses: { NEW: 'New', UNDER_REVIEW: 'Under Review', APPROVED: 'Approved', REJECTED: 'Rejected', COMPLETED: 'Completed' },
   sectors: ['اللجان المركزية','التوسع','التفعيل','قطاع بحري','قطاع الجنوب 1','قطاع الجنوب 2','قطاع شمال الصعيد','قطاع القاهرة الكبري','قطاع القناة'],
   governorates: ['القاهرة','الأسكندرية','بورسعيد','السويس','دمياط','الدقهلية','الشرقية','القليوبية','كفر الشيخ','الغربية','المنوفية','البحيرة','الإسماعيلية','الجيزة','بنى سويف','الفيوم','المنيا','أسيوط','سوهاج','قنا','أسوان','الأقصر','البحر الأحمر','الوادي الجديد','مطروح','شمال سيناء','جنوب سيناء'],
-  universities: ['جامعة القاهرة','جامعة المنصورة','جامعة السويس','جامعة قناة السويس','جامعة بنها','جامعة الأزهر بالقاهرة','جامعة MTI','جامعة المنيا','جامعة بني سويف','جامعة أسيوط','جامعة أسوان','جامعة قنا','جامعة سوهاج','جامعة المعهد العاشر فرع مطروح','جامعة المعهد العاشر','جامعة المنوفية','جامعة طنطا','جامعة طيبة التكنولوجية','جامعة Sphinx','جامعة الأقصر الحكومية','جامعة الأقصر الأهلية','جامعة سيناء','جامعة العريش','جامعة EST','جامعة مطروح','جامعة الوادى الجديد','جامعة تفهنا فرع الأزهر','جامعة الأقصر فرع الأزهر','معهد القاهرة العالى الجديد','جامعة اللوتس','المعهد التكنولوچى العالى للعلوم التطبيقية','المعهد العالى للخدمة الإجتماعية باسوان','جامعة الأهرام الكندية','المعهد العالي للهندسة بالأقصر','جامعة المنوفية الأهلية','جامعة المنصورة الاهلية','جامعة الزقازيق','جامعة ميريت'],
+  universities: ['فريق مركزي','جامعة القاهرة','جامعة المنصورة','جامعة السويس','جامعة قناة السويس','جامعة بنها','جامعة الأزهر بالقاهرة','جامعة MTI','جامعة المنيا','جامعة بني سويف','جامعة أسيوط','جامعة أسوان','جامعة قنا','جامعة سوهاج','جامعة المعهد العاشر فرع مطروح','جامعة المعهد العاشر','جامعة المنوفية','جامعة طنطا','جامعة طيبة التكنولوجية','جامعة Sphinx','جامعة الأقصر الحكومية','جامعة الأقصر الأهلية','جامعة سيناء','جامعة العريش','جامعة EST','جامعة مطروح','جامعة الوادى الجديد','جامعة تفهنا فرع الأزهر','جامعة الأقصر فرع الأزهر','معهد القاهرة العالى الجديد','جامعة اللوتس','المعهد التكنولوچى العالى للعلوم التطبيقية','المعهد العالى للخدمة الإجتماعية باسوان','جامعة الأهرام الكندية','المعهد العالي للهندسة بالأقصر','جامعة المنوفية الأهلية','جامعة المنصورة الاهلية','جامعة الزقازيق','جامعة ميريت'],
   committees: ['Media','HR','PR','Training','Activation','IT','Attraction'],
   expenseItems: ['إيفنت','مطبوعات','جيفتات','استقبال','لوجستيك','قاعات','Other'],
   colors: {}
@@ -546,7 +546,7 @@ function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace
    App Logic
    =========================================== */
 function initApp() {
-  try { if (localStorage.getItem('dashboard_unlocked') === '1') appState.dashboardUnlocked = true; } catch(e){}
+
 
   var today = new Date().toISOString().split('T')[0];
   var df = document.getElementById('submissionDateDisplay');
@@ -653,6 +653,12 @@ function validateFormData(d){
   if(!d.requesterName||d.requesterName.trim().length<2){showToast('يرجى إدخال اسم مقدم الطلب','error');return false;}
   if(!d.requesterEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.requesterEmail)){showToast('يرجى إدخال بريد إلكتروني صحيح','error');return false;}
   if(!d.requesterPhone||d.requesterPhone.length<10){showToast('يرجى إدخال رقم هاتف صحيح','error');return false;}
+  if(d.requestType!=='احتياج فني'){
+    if(!d.amount||parseFloat(d.amount)<=0){showToast('يرجى إدخال مبلغ صحيح أكبر من صفر','error');return false;}
+  }
+  if(d.requestType==='ميزانية شهرية'){
+    if(!d.items||d.items.length===0){showToast('يرجى إضافة بند واحد على الأقل','error');return false;}
+  }
   return true;
 }
 
@@ -847,7 +853,6 @@ function checkDashboardPassword() {
   var err = document.getElementById('passwordError');
   if (input.value === DASHBOARD_PASSWORD) {
     appState.dashboardUnlocked = true;
-    try { localStorage.setItem('dashboard_unlocked', '1'); } catch(e){}
     document.getElementById('passwordModal').classList.add('hidden');
     input.value = '';
     err.textContent = '';
