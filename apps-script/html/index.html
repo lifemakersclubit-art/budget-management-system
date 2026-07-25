@@ -211,6 +211,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .timeline-details{font-size:13px;color:var(--text-secondary);line-height:1.5}
 
 .hidden{display:none !important}
+.field-error .form-input,.field-error .form-select,.field-error .form-textarea,.field-error .radio-group{border-color:var(--danger) !important;box-shadow:0 0 0 3px rgba(231,76,60,0.1) !important}
+.field-error-msg{color:var(--danger);font-size:12px;font-weight:600;margin-top:4px;display:none;align-items:center;gap:4px}
+.field-error .field-error-msg{display:flex}
+.form-group .form-input:focus,.form-group .form-select:focus,.form-group .form-textarea:focus{border-color:var(--navy);box-shadow:0 0 0 4px rgba(1,73,118,0.08)}
 
 .btn-loading .btn-text{opacity:0}.btn-loading .btn-spinner{display:block}
 .btn-spinner{display:none;width:20px;height:20px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:currentColor;border-radius:50%;animation:spin 0.6s linear infinite;position:absolute}
@@ -547,14 +551,14 @@ function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace
    App Logic
    =========================================== */
 function initApp() {
-
-
   var today = new Date().toISOString().split('T')[0];
   var df = document.getElementById('submissionDateDisplay');
   if (df) df.value = today;
 
   showLoading();
   var safety = setTimeout(function(){ if(!appState.initialized) applyFallback(); }, 8000);
+
+  loadCSRFToken();
 
   apiCall('getConfig')
     .then(function(r){ clearTimeout(safety); if(r&&r.success){ appState.config=r.data; populateDropdowns(r.data); appState.initialized=true; hideLoading(); } else { applyFallback(); } })
@@ -576,13 +580,19 @@ function populateDropdowns(config) {
   config.governorates.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;g.appendChild(o); });
   if(config.universities){config.universities.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;u.appendChild(o); });}
   config.committees.forEach(function(v){ var o=document.createElement('option');o.value=v;o.textContent=v;c.appendChild(o); });
-  loadCSRFToken();
 }
 
 function loadCSRFToken() {
   apiCall('getCSRFToken')
-    .then(function(r){ if(r&&r.success){ appState.csrfToken=r.data.token; document.getElementById('csrfToken').value=r.data.token; } })
-    .catch(function(){});
+    .then(function(r){
+      if(r&&r.success&&r.data&&r.data.token){
+        appState.csrfToken=r.data.token;
+        document.getElementById('csrfToken').value=r.data.token;
+      } else {
+        appState.csrfToken='';
+      }
+    })
+    .catch(function(){appState.csrfToken='';});
 }
 
 function handleRequestTypeChange(radio) {
@@ -616,7 +626,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e){ e
 function submitRequest() {
   var form=document.getElementById('requestForm'), fd=new FormData(form);
   var rt=fd.get('requestType');
-  if(!rt){showToast('يرجى اختيار نوع الطلب','error');return;}
+  if(!rt){alert('يرجى اختيار نوع الطلب');showToast('يرجى اختيار نوع الطلب','error');return;}
 
   var data={ action:'submitRequest', csrfToken:appState.csrfToken, requestType:rt, sector:fd.get('sector'), governorate:fd.get('governorate'), university:fd.get('university'), notes:fd.get('notes'), notifiedAdmin:fd.get('notifiedAdmin')==='true', requesterName:fd.get('requesterName'), requesterEmail:fd.get('requesterEmail'), requesterPhone:fd.get('requesterPhone') };
 
@@ -626,6 +636,14 @@ function submitRequest() {
   else if(rt==='بدل مواصلات'){ data.activityName=fd.get('activityName');data.submissionDate=fd.get('submissionDate');data.amount=fd.get('amount');data.numberOfPeople=fd.get('numberOfPeople');data.reason=fd.get('reason');data.transferNumber=fd.get('transferNumber'); }
 
   if(!validateFormData(data))return;
+
+  if(!appState.csrfToken){
+    alert('خطأ في التحقق الأمني. جاري إعادة تحميل...');
+    loadCSRFToken();
+    showToast('يرجى المحاولة مرة أخرى بعد التحميل','warning');
+    return;
+  }
+
   var submitBtn = document.getElementById('submitBtn');
   showProgress(); setBtnLoading(submitBtn, true);
 
@@ -634,33 +652,94 @@ function submitRequest() {
       var result=(typeof r==='string')?JSON.parse(r):r;
       hideProgress(); setBtnLoading(submitBtn, false);
       if(result.success){
+        var msg='تم إرسال الطلب بنجاح!\n\nرقم الطلب: '+result.data.requestId;
+        alert(msg);
         showToast('تم إرسال الطلب بنجاح! رقم الطلب: '+result.data.requestId,'success');
         if(result.data.csrfToken){ appState.csrfToken=result.data.csrfToken; document.getElementById('csrfToken').value=result.data.csrfToken; }
         form.reset(); document.getElementById('monthlyItemsBody').innerHTML=''; document.getElementById('urgentItemsBody').innerHTML='';
         ['monthlyBudgetSection','urgentBudgetSection','technicalNeedSection','transportAllowanceSection'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
         document.getElementById('submissionDateDisplay').value=new Date().toISOString().split('T')[0];
-      } else { showToast('خطأ: '+(result.error||result.message),'error'); }
+        clearAllFieldErrors();
+      } else {
+        var errMsg = result.error || result.message || 'حدث خطأ غير معروف';
+        alert('خطأ في إرسال الطلب:\n\n'+errMsg);
+        showToast('خطأ: '+errMsg,'error');
+      }
     })
-    .catch(function(){ hideProgress(); setBtnLoading(submitBtn, false); showToast('خطأ في الاتصال بالخادم','error'); });
+    .catch(function(err){
+      hideProgress(); setBtnLoading(submitBtn, false);
+      alert('خطأ في الاتصال بالخادم.\n\nتأكد من اتصالك بالإنترنت وحاول مرة أخرى.');
+      showToast('خطأ في الاتصال بالخادم','error');
+    });
 }
 
 function getMonthlyItems(){var tb=document.getElementById('monthlyItemsBody'),items=[];for(var i=0;i<tb.rows.length;i++){var r=tb.rows[i],cat=r.querySelector('select')?r.querySelector('select').value:'',desc=r.querySelector('input[type="text"]')?r.querySelector('input[type="text"]').value:'',cost=r.querySelector('input[type="number"]')?r.querySelector('input[type="number"]').value:0;if(cat||desc||cost)items.push({category:cat,description:desc,cost:parseFloat(cost)||0,quantity:1});}return items;}
 function getUrgentItems(){var tb=document.getElementById('urgentItemsBody'),items=[];for(var i=0;i<tb.rows.length;i++){var r=tb.rows[i],desc=r.querySelector('input[type="text"]')?r.querySelector('input[type="text"]').value:'',cost=r.querySelector('input[type="number"]')?r.querySelector('input[type="number"]').value:0;if(desc||cost)items.push({category:'',description:desc,cost:parseFloat(cost)||0,quantity:1});}return items;}
 
 function validateFormData(d){
-  if(!d.requestType){showToast('يرجى اختيار نوع الطلب','error');return false;}
-  if(!d.sector){showToast('يرجى اختيار القطاع','error');return false;}
-  if(!d.governorate){showToast('يرجى اختيار المحافظة','error');return false;}
-  if(!d.requesterName||d.requesterName.trim().length<2){showToast('يرجى إدخال اسم مقدم الطلب','error');return false;}
-  if(!d.requesterEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.requesterEmail)){showToast('يرجى إدخال بريد إلكتروني صحيح','error');return false;}
-  if(!d.requesterPhone||d.requesterPhone.length<10){showToast('يرجى إدخال رقم هاتف صحيح','error');return false;}
+  clearAllFieldErrors();
+  var errors=[];
+
+  if(!d.requestType){errors.push({field:null,msg:'يرجى اختيار نوع الطلب'});}
+  if(!d.sector){errors.push({field:'sector',msg:'يرجى اختيار القطاع'});}
+  if(!d.governorate){errors.push({field:'governorate',msg:'يرجى اختيار المحافظة'});}
+  if(!d.university){errors.push({field:'university',msg:'يرجى اختيار الجامعة'});}
+  if(!d.notes||d.notes.trim().length<3){errors.push({field:'notes',msg:'يرجى إدخال ملاحظات (3 أحرف على الأقل)'});}
+  if(!d.requesterName||d.requesterName.trim().length<2){errors.push({field:'requesterName',msg:'يرجى إدخال اسم مقدم الطلب'});}
+  if(!d.requesterEmail||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.requesterEmail)){errors.push({field:'requesterEmail',msg:'يرجى إدخال بريد إلكتروني صحيح'});}
+  if(!d.requesterPhone||d.requesterPhone.length<10){errors.push({field:'requesterPhone',msg:'يرجى إدخال رقم هاتف صحيح (10 أرقام على الأقل)'});}
+
   if(d.requestType!=='احتياج فني'){
-    if(!d.amount||parseFloat(d.amount)<=0){showToast('يرجى إدخال مبلغ صحيح أكبر من صفر','error');return false;}
+    if(!d.amount||parseFloat(d.amount)<=0){errors.push({field:'amount',msg:'يرجى إدخال مبلغ صحيح أكبر من صفر'});}
   }
   if(d.requestType==='ميزانية شهرية'){
-    if(!d.items||d.items.length===0){showToast('يرجى إضافة بند واحد على الأقل','error');return false;}
+    if(!d.budgetMonth){errors.push({field:'budgetMonth',msg:'يرجى اختيار شهر الميزانية'});}
+    if(!d.deadline){errors.push({field:'deadline',msg:'يرجى إدخال موعد التسليم'});}
+    if(!d.items||d.items.length===0){errors.push({field:null,msg:'يرجى إضافة بند واحد على الأقل'});}
+  }
+  if(d.requestType==='ميزانية عاجلة'){
+    if(!d.activityName){errors.push({field:'activityName',msg:'يرجى إدخال اسم النشاط'});}
+  }
+  if(d.requestType==='احتياج فني'){
+    if(!d.committee){errors.push({field:'committee',msg:'يرجى اختيار اللجنة'});}
+    if(!d.executionDate){errors.push({field:'executionDate',msg:'يرجى إدخال تاريخ التنفيذ'});}
+    if(!d.purpose){errors.push({field:'purpose',msg:'يرجى إدخال الغرض'});}
+    if(!d.technicalNeed||d.technicalNeed.trim().length<10){errors.push({field:'technicalNeed',msg:'الاحتياج يجب أن يكون 10 أحرف على الأقل'});}
+  }
+  if(d.requestType==='بدل مواصلات'){
+    if(!d.activityName){errors.push({field:'activityName',msg:'يرجى إدخال اسم النشاط'});}
+    if(!d.numberOfPeople||parseInt(d.numberOfPeople)<=0){errors.push({field:'numberOfPeople',msg:'يرجى إدخال عدد الأفراد'});}
+    if(!d.reason){errors.push({field:'reason',msg:'يرجى إدخال سبب الصرف'});}
+  }
+
+  if(errors.length>0){
+    var msgList=errors.map(function(e,i){return (i+1)+'. '+e.msg;}).join('\n');
+    alert('يرجى تصحيح الأخطاء التالية:\n\n'+msgList);
+    errors.forEach(function(e){if(e.field)showFieldError(e.field,e.msg);});
+    return false;
   }
   return true;
+}
+
+function showFieldError(fieldId,msg){
+  var el=document.getElementById(fieldId);
+  if(!el)return;
+  var group=el.closest('.form-group');
+  if(!group)group=el.parentElement;
+  if(!group)return;
+  group.classList.add('field-error');
+  var errEl=group.querySelector('.field-error-msg');
+  if(!errEl){
+    errEl=document.createElement('div');
+    errEl.className='field-error-msg';
+    errEl.innerHTML='<span class="material-icons" style="font-size:14px">error</span> '+msg;
+    group.appendChild(errEl);
+  }
+}
+
+function clearAllFieldErrors(){
+  document.querySelectorAll('.field-error').forEach(function(el){el.classList.remove('field-error');});
+  document.querySelectorAll('.field-error-msg').forEach(function(el){el.remove();});
 }
 
 function showPage(p){
