@@ -307,10 +307,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
                 <label class="radio-card"><input type="radio" name="requestType" value="بدل مواصلات" onchange="handleRequestTypeChange(this)"><span class="radio-custom"></span><span class="radio-content"><span class="material-icons">directions_car</span><span>بدل مواصلات</span></span></label>
               </div>
             </div>
-            <div class="form-group"><label class="form-label" for="sector">القطاع</label><select id="sector" name="sector" class="form-select" required><option value="">اختر القطاع</option></select></div>
-            <div class="form-group"><label class="form-label" for="governorate">المحافظة</label><select id="governorate" name="governorate" class="form-select" required><option value="">اختر المحافظة</option></select></div>
-            <div class="form-group"><label class="form-label" for="university">الجامعة</label><select id="university" name="university" class="form-select" required><option value="">اختر الجامعة</option></select></div>
-            <div class="form-group full-width"><label class="form-label" for="notes">الملاحظات</label><textarea id="notes" name="notes" class="form-textarea" rows="3" placeholder="أي ملاحظات إضافية..." required></textarea></div>
+            <div class="form-group"><label class="form-label" for="sector">القطاع</label><select id="sector" name="sector" class="form-select"><option value="">اختر القطاع</option></select></div>
+            <div class="form-group"><label class="form-label" for="governorate">المحافظة</label><select id="governorate" name="governorate" class="form-select"><option value="">اختر المحافظة</option></select></div>
+            <div class="form-group"><label class="form-label" for="university">الجامعة</label><select id="university" name="university" class="form-select"><option value="">اختر الجامعة</option></select></div>
+            <div class="form-group full-width"><label class="form-label" for="notes">الملاحظات</label><textarea id="notes" name="notes" class="form-textarea" rows="3" placeholder="أي ملاحظات إضافية..."></textarea></div>
             <div class="form-group full-width">
               <label class="form-label">هل تم التبليغ بهذا الاحتياج للمشرف الإداري؟</label>
               <div class="radio-group horizontal">
@@ -324,10 +324,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
         <div id="monthlyBudgetSection" class="form-section hidden">
           <h3 class="section-title"><span class="material-icons">account_balance_wallet</span> بيانات الميزانية الشهرية</h3>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label" for="budgetMonth">طلب ميزانية شهر</label><input type="month" id="budgetMonth" name="budgetMonth" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="monthlyAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="monthlyAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00" required><span class="input-icon">ج.م</span></div></div>
-            <div class="form-group"><label class="form-label" for="deadline">Deadline تسليم الميزانية</label><input type="date" id="deadline" name="deadline" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="transferNumber">رقم التحويل</label><input type="text" id="transferNumber" name="transferNumber" class="form-input" placeholder="إنستا باي / محفظة" required></div>
+            <div class="form-group"><label class="form-label" for="budgetMonth">طلب ميزانية شهر</label><input type="month" id="budgetMonth" name="budgetMonth" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="monthlyAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="monthlyAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="deadline">Deadline تسليم الميزانية</label><input type="date" id="deadline" name="deadline" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="transferNumber">رقم التحويل</label><input type="text" id="transferNumber" name="transferNumber" class="form-input" placeholder="إنستا باي / محفظة"></div>
             <div class="form-group full-width">
               <label class="form-label">هل تم تبليغ منسق القطاع؟</label>
               <div class="radio-group horizontal">
@@ -345,10 +345,10 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
         <div id="urgentBudgetSection" class="form-section hidden">
           <h3 class="section-title"><span class="material-icons">warning</span> بيانات الميزانية العاجلة</h3>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label" for="urgentDate">تاريخ الطلب</label><input type="date" id="urgentDate" name="submissionDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="activityName">الفاعلية أو النشاط</label><input type="text" id="activityName" name="activityName" class="form-input" placeholder="اسم النشاط" required></div>
-            <div class="form-group"><label class="form-label" for="urgentAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="urgentAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00" required><span class="input-icon">ج.م</span></div></div>
-            <div class="form-group"><label class="form-label" for="urgentTransfer">رقم التحويل</label><input type="text" id="urgentTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل" required></div>
+            <div class="form-group"><label class="form-label" for="urgentDate">تاريخ الطلب</label><input type="date" id="urgentDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="activityName">الفاعلية أو النشاط</label><input type="text" id="activityName" name="activityName" class="form-input" placeholder="اسم النشاط"></div>
+            <div class="form-group"><label class="form-label" for="urgentAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="urgentAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="urgentTransfer">رقم التحويل</label><input type="text" id="urgentTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل"></div>
           </div>
           <div class="table-container">
             <div class="table-header"><h4>بنود الصرف</h4><button type="button" class="btn btn-secondary btn-sm" onclick="addItemRow('urgent')"><span class="material-icons">add</span> إضافة بند</button></div>
@@ -359,39 +359,39 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
         <div id="technicalNeedSection" class="form-section hidden">
           <h3 class="section-title"><span class="material-icons">engineering</span> بيانات الاحتياج الفني</h3>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label" for="committee">اختيار اللجنة</label><select id="committee" name="committee" class="form-select" required><option value="">اختر اللجنة</option></select></div>
-            <div class="form-group"><label class="form-label" for="technicalDate">تاريخ تقديم الطلب</label><input type="date" id="technicalDate" name="submissionDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="executionDate">تاريخ التنفيذ</label><input type="date" id="executionDate" name="executionDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="purpose">الغرض</label><input type="text" id="purpose" name="purpose" class="form-input" placeholder="الغرض من الطلب" required></div>
-            <div class="form-group"><label class="form-label" for="followUpEmail">إيميل المتابعة</label><input type="email" id="followUpEmail" name="followUpEmail" class="form-input" placeholder="email@example.com" required></div>
-            <div class="form-group full-width"><label class="form-label" for="technicalNeed">الاحتياج المطلوب</label><textarea id="technicalNeed" name="technicalNeed" class="form-textarea" rows="5" placeholder="اشرح الاحتياج الفني بالتفصيل..." required></textarea></div>
+            <div class="form-group"><label class="form-label" for="committee">اختيار اللجنة</label><select id="committee" name="committee" class="form-select"><option value="">اختر اللجنة</option></select></div>
+            <div class="form-group"><label class="form-label" for="technicalDate">تاريخ تقديم الطلب</label><input type="date" id="technicalDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="executionDate">تاريخ التنفيذ</label><input type="date" id="executionDate" name="executionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="purpose">الغرض</label><input type="text" id="purpose" name="purpose" class="form-input" placeholder="الغرض من الطلب"></div>
+            <div class="form-group"><label class="form-label" for="followUpEmail">إيميل المتابعة</label><input type="email" id="followUpEmail" name="followUpEmail" class="form-input" placeholder="email@example.com"></div>
+            <div class="form-group full-width"><label class="form-label" for="technicalNeed">الاحتياج المطلوب</label><textarea id="technicalNeed" name="technicalNeed" class="form-textarea" rows="5" placeholder="اشرح الاحتياج الفني بالتفصيل..."></textarea></div>
           </div>
         </div>
 
         <div id="transportAllowanceSection" class="form-section hidden">
           <h3 class="section-title"><span class="material-icons">directions_bus</span> بيانات بدل المواصلات</h3>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label" for="transportActivity">اسم النشاط</label><input type="text" id="transportActivity" name="activityName" class="form-input" placeholder="اسم النشاط" required></div>
-            <div class="form-group"><label class="form-label" for="transportDate">التاريخ</label><input type="date" id="transportDate" name="submissionDate" class="form-input" required></div>
-            <div class="form-group"><label class="form-label" for="transportAmount">المبلغ</label><div class="input-with-icon"><input type="number" id="transportAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00" required><span class="input-icon">ج.م</span></div></div>
-            <div class="form-group"><label class="form-label" for="numberOfPeople">عدد الأفراد</label><input type="number" id="numberOfPeople" name="numberOfPeople" class="form-input" min="1" placeholder="1" required></div>
-            <div class="form-group full-width"><label class="form-label" for="reason">سبب الصرف</label><textarea id="reason" name="reason" class="form-textarea" rows="3" placeholder="اشرح سبب الصرف..." required></textarea></div>
-            <div class="form-group"><label class="form-label" for="transportTransfer">رقم التحويل</label><input type="text" id="transportTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل" required></div>
+            <div class="form-group"><label class="form-label" for="transportActivity">اسم النشاط</label><input type="text" id="transportActivity" name="activityName" class="form-input" placeholder="اسم النشاط"></div>
+            <div class="form-group"><label class="form-label" for="transportDate">التاريخ</label><input type="date" id="transportDate" name="submissionDate" class="form-input"></div>
+            <div class="form-group"><label class="form-label" for="transportAmount">المبلغ</label><div class="input-with-icon"><input type="number" id="transportAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
+            <div class="form-group"><label class="form-label" for="numberOfPeople">عدد الأفراد</label><input type="number" id="numberOfPeople" name="numberOfPeople" class="form-input" min="1" placeholder="1"></div>
+            <div class="form-group full-width"><label class="form-label" for="reason">سبب الصرف</label><textarea id="reason" name="reason" class="form-textarea" rows="3" placeholder="اشرح سبب الصرف..."></textarea></div>
+            <div class="form-group"><label class="form-label" for="transportTransfer">رقم التحويل</label><input type="text" id="transportTransfer" name="transferNumber" class="form-input" placeholder="رقم التحويل"></div>
           </div>
         </div>
 
         <div class="form-section">
           <h3 class="section-title"><span class="material-icons">person</span> بيانات مقدم الطلب</h3>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label" for="requesterName">اسم مقدم الطلب</label><input type="text" id="requesterName" name="requesterName" class="form-input" required placeholder="الاسم الكامل"></div>
-            <div class="form-group"><label class="form-label" for="requesterEmail">البريد الإلكتروني</label><input type="email" id="requesterEmail" name="requesterEmail" class="form-input" required placeholder="email@example.com"></div>
-            <div class="form-group"><label class="form-label" for="requesterPhone">رقم الهاتف</label><input type="tel" id="requesterPhone" name="requesterPhone" class="form-input" required placeholder="01XXXXXXXXX"></div>
+            <div class="form-group"><label class="form-label" for="requesterName">اسم مقدم الطلب</label><input type="text" id="requesterName" name="requesterName" class="form-input" placeholder="الاسم الكامل"></div>
+            <div class="form-group"><label class="form-label" for="requesterEmail">البريد الإلكتروني</label><input type="email" id="requesterEmail" name="requesterEmail" class="form-input" placeholder="email@example.com"></div>
+            <div class="form-group"><label class="form-label" for="requesterPhone">رقم الهاتف</label><input type="tel" id="requesterPhone" name="requesterPhone" class="form-input" placeholder="01XXXXXXXXX"></div>
             <div class="form-group"><label class="form-label">تاريخ التقديم</label><input type="text" id="submissionDateDisplay" class="form-input" readonly></div>
           </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-amber btn-lg" id="submitBtn"><span class="material-icons">send</span> إرسال الطلب</button>
+          <button type="button" class="btn btn-amber btn-lg" id="submitBtn" onclick="submitRequest()"><span class="material-icons">send</span> إرسال الطلب</button>
         </div>
       </form>
     </div></div>
@@ -481,11 +481,20 @@ function apiCall(action, data) {
     }
   }
   var url = API_URL + '?' + params;
+  console.log('API call [' + action + '] URL length:', url.length);
+  if (url.length > 8000) console.warn('URL is very long! May cause issues.');
   return fetch(url, { method: 'GET' })
-    .then(function(response) { return response.text(); })
+    .then(function(response) {
+      console.log('API [' + action + '] HTTP status:', response.status);
+      return response.text();
+    })
     .then(function(text) {
+      console.log('API [' + action + '] response (first 500 chars):', text.substring(0, 500));
       try { return JSON.parse(text); }
-      catch(e) { return { success: false, error: 'Invalid response from server' }; }
+      catch(e) {
+        console.error('JSON parse error for [' + action + ']:', e, 'Raw text:', text.substring(0, 200));
+        return { success: false, error: 'Invalid response from server: ' + text.substring(0, 100) };
+      }
     });
 }
 
@@ -621,54 +630,103 @@ function updateItemTotal(type) {
   document.getElementById(totid).textContent=total.toFixed(2)+' ج.م';
 }
 
-document.getElementById('requestForm').addEventListener('submit', function(e){ e.preventDefault(); submitRequest(); });
+function getVal(id){var el=document.getElementById(id);return el?el.value.trim():'';}
 
 function submitRequest() {
-  var form=document.getElementById('requestForm'), fd=new FormData(form);
-  var rt=fd.get('requestType');
-  if(!rt){alert('يرجى اختيار نوع الطلب');showToast('يرجى اختيار نوع الطلب','error');return;}
+  console.log('=== submitRequest START ===');
 
-  var data={ action:'submitRequest', csrfToken:appState.csrfToken, requestType:rt, sector:fd.get('sector'), governorate:fd.get('governorate'), university:fd.get('university'), notes:fd.get('notes'), notifiedAdmin:fd.get('notifiedAdmin')==='true', requesterName:fd.get('requesterName'), requesterEmail:fd.get('requesterEmail'), requesterPhone:fd.get('requesterPhone') };
+  var rt='';
+  var radios=document.getElementsByName('requestType');
+  for(var i=0;i<radios.length;i++){if(radios[i].checked){rt=radios[i].value;break;}}
+  console.log('requestType:',rt);
+  if(!rt){alert('يرجى اختيار نوع الطلب');return;}
 
-  if(rt==='ميزانية شهرية'){ data.budgetMonth=fd.get('budgetMonth');data.amount=fd.get('amount');data.deadline=fd.get('deadline');data.notifiedCoordinator=fd.get('notifiedCoordinator')==='true';data.transferNumber=fd.get('transferNumber');data.items=getMonthlyItems(); }
-  else if(rt==='ميزانية عاجلة'){ data.submissionDate=fd.get('submissionDate');data.activityName=fd.get('activityName');data.amount=fd.get('amount');data.transferNumber=fd.get('transferNumber');data.items=getUrgentItems(); }
-  else if(rt==='احتياج فني'){ data.committee=fd.get('committee');data.submissionDate=fd.get('submissionDate');data.executionDate=fd.get('executionDate');data.purpose=fd.get('purpose');data.followUpEmail=fd.get('followUpEmail');data.technicalNeed=fd.get('technicalNeed'); }
-  else if(rt==='بدل مواصلات'){ data.activityName=fd.get('activityName');data.submissionDate=fd.get('submissionDate');data.amount=fd.get('amount');data.numberOfPeople=fd.get('numberOfPeople');data.reason=fd.get('reason');data.transferNumber=fd.get('transferNumber'); }
+  var data={
+    action:'submitRequest',
+    csrfToken:appState.csrfToken,
+    requestType:rt,
+    sector:getVal('sector'),
+    governorate:getVal('governorate'),
+    university:getVal('university'),
+    notes:getVal('notes'),
+    notifiedAdmin:(function(){var r=document.getElementsByName('notifiedAdmin');for(var i=0;i<r.length;i++){if(r[i].checked)return r[i].value==='true';}return false;})(),
+    requesterName:getVal('requesterName'),
+    requesterEmail:getVal('requesterEmail'),
+    requesterPhone:getVal('requesterPhone')
+  };
+
+  if(rt==='ميزانية شهرية'){
+    data.budgetMonth=getVal('budgetMonth');
+    data.amount=getVal('monthlyAmount');
+    data.deadline=getVal('deadline');
+    data.transferNumber=getVal('transferNumber');
+    data.notifiedCoordinator=(function(){var r=document.getElementsByName('notifiedCoordinator');for(var i=0;i<r.length;i++){if(r[i].checked)return r[i].value==='true';}return false;})();
+    data.items=getMonthlyItems();
+  }else if(rt==='ميزانية عاجلة'){
+    data.submissionDate=getVal('urgentDate');
+    data.activityName=getVal('activityName');
+    data.amount=getVal('urgentAmount');
+    data.transferNumber=getVal('urgentTransfer');
+    data.items=getUrgentItems();
+  }else if(rt==='احتياج فني'){
+    data.committee=getVal('committee');
+    data.submissionDate=getVal('technicalDate');
+    data.executionDate=getVal('executionDate');
+    data.purpose=getVal('purpose');
+    data.followUpEmail=getVal('followUpEmail');
+    data.technicalNeed=getVal('technicalNeed');
+  }else if(rt==='بدل مواصلات'){
+    data.activityName=getVal('transportActivity');
+    data.submissionDate=getVal('transportDate');
+    data.amount=getVal('transportAmount');
+    data.numberOfPeople=getVal('numberOfPeople');
+    data.reason=getVal('reason');
+    data.transferNumber=getVal('transportTransfer');
+  }
+
+  console.log('Data to send:',JSON.stringify(data,null,2));
 
   if(!validateFormData(data))return;
 
   if(!appState.csrfToken){
-    alert('خطأ في التحقق الأمني. جاري إعادة تحميل...');
+    console.error('CSRF token is empty!');
+    alert('خطأ في التحقق الأمني. جاري إعادة تحميل التوكن...');
     loadCSRFToken();
-    showToast('يرجى المحاولة مرة أخرى بعد التحميل','warning');
+    showToast('يرجى المحاولة مرة أخرى بعد ثانية واحدة','warning');
     return;
   }
 
   var submitBtn = document.getElementById('submitBtn');
   showProgress(); setBtnLoading(submitBtn, true);
+  console.log('Sending request to:',API_URL+'?action=submitRequest&...');
 
   apiCall('submitRequest', data)
     .then(function(r){
+      console.log('Raw API response:',r);
       var result=(typeof r==='string')?JSON.parse(r):r;
+      console.log('Parsed result:',result);
       hideProgress(); setBtnLoading(submitBtn, false);
       if(result.success){
         var msg='تم إرسال الطلب بنجاح!\n\nرقم الطلب: '+result.data.requestId;
         alert(msg);
-        showToast('تم إرسال الطلب بنجاح! رقم الطلب: '+result.data.requestId,'success');
+        showToast(msg,'success');
         if(result.data.csrfToken){ appState.csrfToken=result.data.csrfToken; document.getElementById('csrfToken').value=result.data.csrfToken; }
+        form=document.getElementById('requestForm');
         form.reset(); document.getElementById('monthlyItemsBody').innerHTML=''; document.getElementById('urgentItemsBody').innerHTML='';
         ['monthlyBudgetSection','urgentBudgetSection','technicalNeedSection','transportAllowanceSection'].forEach(function(id){document.getElementById(id).classList.add('hidden');});
         document.getElementById('submissionDateDisplay').value=new Date().toISOString().split('T')[0];
         clearAllFieldErrors();
       } else {
         var errMsg = result.error || result.message || 'حدث خطأ غير معروف';
+        console.error('Server error:',errMsg);
         alert('خطأ في إرسال الطلب:\n\n'+errMsg);
         showToast('خطأ: '+errMsg,'error');
       }
     })
     .catch(function(err){
+      console.error('Fetch error:',err);
       hideProgress(); setBtnLoading(submitBtn, false);
-      alert('خطأ في الاتصال بالخادم.\n\nتأكد من اتصالك بالإنترنت وحاول مرة أخرى.');
+      alert('خطأ في الاتصال بالخادم.\n\nتأكد من اتصالك بالإنترنت وحاول مرة أخرى.\n\nتفاصيل الخطأ: '+err);
       showToast('خطأ في الاتصال بالخادم','error');
     });
 }
