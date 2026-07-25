@@ -720,9 +720,10 @@ function handleSearch(){clearTimeout(window.searchTimeout);window.searchTimeout=
 function viewRequest(rid){
   showLoading();
   apiCall('getRequest',{requestId:rid}).then(function(r){
-    if(r&&r.success){renderRequestDetails(r.data,rid);hideLoading();document.getElementById('requestModal').classList.add('active');}
-    else{hideLoading();showToast('خطأ في تحميل تفاصيل الطلب','error');}
-  }).catch(function(){hideLoading();showToast('خطأ في الاتصال','error');});
+    hideLoading();
+    if(r&&r.success&&r.data){renderRequestDetails(r.data,rid);document.getElementById('requestModal').classList.add('active');}
+    else{showToast('لم يتم العثور على الطلب أو حدث خطأ','error');}
+  }).catch(function(e){hideLoading();showToast('خطأ في الاتصال بالخادم','error');});
 }
 
 function renderRequestDetails(req,rid){
@@ -759,32 +760,45 @@ function sendReplyWithStatus(rid){
   var btn=document.querySelector('.detail-section:last-child .btn');
   showProgress();setBtnLoading(btn,true);
 
-  var promises=[];
-  if(rb.trim()){
-    promises.push(apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}));
-  }
-  if(ns){
-    promises.push(apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}));
+  function updateToken(r){
+    if(r&&r.success&&r.data&&r.data.csrfToken){
+      appState.csrfToken=r.data.csrfToken;
+      document.getElementById('csrfToken').value=r.data.csrfToken;
+    }
   }
 
-  Promise.all(promises).then(function(results){
-    hideProgress();setBtnLoading(btn,false);
-    var allOk=true;
-    results.forEach(function(r){if(!r||!r.success)allOk=false;});
-    if(allOk){
-      var msgs=[];
-      if(rb.trim())msgs.push('تم إرسال الرد');
-      if(ns)msgs.push('تم تحديث الحالة');
-      showToast(msgs.join(' و '),'success');
-      var lastResult=results[results.length-1];
-      if(lastResult&&lastResult.data&&lastResult.data.csrfToken){appState.csrfToken=lastResult.data.csrfToken;document.getElementById('csrfToken').value=lastResult.data.csrfToken;}
-      document.getElementById('replyBody').value='';
-      document.getElementById('newStatus').value='';
-      loadRequests();
-    }else{
-      showToast('حدث خطأ في إحدى العمليات','error');
-    }
-  }).catch(function(){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال','error');});
+  if(rb.trim()&&ns){
+    apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
+      updateToken(r);
+      if(!r||!r.success){hideProgress();setBtnLoading(btn,false);showToast('خطأ في إرسال الرد: '+((r&&r.error)||''),'error');return;}
+      return apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken});
+    }).then(function(r){
+      hideProgress();setBtnLoading(btn,false);
+      if(r&&r.success){
+        updateToken(r);
+        showToast('تم إرسال الرد وتحديث الحالة بنجاح','success');
+        document.getElementById('replyBody').value='';
+        document.getElementById('newStatus').value='';
+        loadRequests();
+      }else{
+        showToast('تم إرسال الرد لكن فشل تحديث الحالة: '+((r&&r.error)||''),'warning');
+        document.getElementById('replyBody').value='';
+        loadRequests();
+      }
+    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
+  }else if(rb.trim()){
+    apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
+      hideProgress();setBtnLoading(btn,false);
+      if(r&&r.success){updateToken(r);showToast('تم إرسال الرد بنجاح','success');document.getElementById('replyBody').value='';loadRequests();}
+      else{showToast('خطأ: '+((r&&r.error)||''),'error');}
+    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
+  }else if(ns){
+    apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
+      hideProgress();setBtnLoading(btn,false);
+      if(r&&r.success){updateToken(r);showToast('تم تحديث الحالة بنجاح','success');document.getElementById('newStatus').value='';loadRequests();}
+      else{showToast('خطأ: '+((r&&r.error)||''),'error');}
+    }).catch(function(e){hideProgress();setBtnLoading(btn,false);showToast('خطأ في الاتصال: '+e,'error');});
+  }
 }
 
 function sendReply(rid){
@@ -794,9 +808,12 @@ function sendReply(rid){
   showProgress(); setBtnLoading(btn, true);
   apiCall('sendReply',{requestId:rid,replyBody:rb,csrfToken:appState.csrfToken}).then(function(r){
     hideProgress(); setBtnLoading(btn, false);
-    if(r&&r.success){showToast('تم إرسال الرد بنجاح','success');if(r.data&&r.data.csrfToken)appState.csrfToken=r.data.csrfToken;document.getElementById('replyBody').value='';}
-    else{showToast('خطأ: '+(r.error||r.message),'error');}
-  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
+    if(r&&r.success){
+      if(r.data&&r.data.csrfToken){appState.csrfToken=r.data.csrfToken;document.getElementById('csrfToken').value=r.data.csrfToken;}
+      showToast('تم إرسال الرد بنجاح','success');document.getElementById('replyBody').value='';
+    }
+    else{showToast('خطأ: '+(r.error||r.message||'حدث خطأ'),'error');}
+  }).catch(function(e){hideProgress(); setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
 }
 
 function showLoading(){document.getElementById('loadingOverlay').style.display='flex';}

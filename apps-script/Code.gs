@@ -411,8 +411,9 @@ var Validation = (function() {
   }
 
   function validateCSRF(token) {
+    if (!token) return false;
     var stored = PropertiesService.getScriptProperties().getProperty('csrf_token');
-    if (!stored) return false;
+    if (!stored) { generateCSRFToken(); stored = PropertiesService.getScriptProperties().getProperty('csrf_token'); }
     var ts = PropertiesService.getScriptProperties().getProperty('csrf_timestamp');
     if (ts && (new Date().getTime()-parseInt(ts))/1000 > 3600) { generateCSRFToken(); return false; }
     return token === stored;
@@ -673,8 +674,9 @@ function doGet(e) {
         return Utils.createSuccessResponse(reqs);
 
       case 'getRequest':
+        if (!p.requestId) return Utils.createErrorResponse('Request ID is required');
         var req = Database.getRequest(p.requestId);
-        if (!req) return Utils.createSuccessResponse(null, 'Not found');
+        if (!req) return Utils.createErrorResponse('Request not found');
         return Utils.createSuccessResponse(req);
 
       case 'getStats':
