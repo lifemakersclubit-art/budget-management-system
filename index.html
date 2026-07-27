@@ -98,6 +98,14 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .stat-icon.teal{background:linear-gradient(135deg,#00897B,#26A69A)}
 .stat-info h3{font-family:var(--font-display);font-size:30px;font-weight:800;color:var(--navy-deep);line-height:1.1;letter-spacing:-1px}
 .stat-info p{color:var(--text-muted);font-size:13px;font-weight:600;margin-top:4px}
+.stat-sub{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--amber-dark);margin-top:4px;display:flex;align-items:center;gap:4px}
+.stat-sub::before{content:'';width:4px;height:4px;background:var(--amber);border-radius:50%}
+.stat-total-card{grid-column:1/-1;background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;display:flex;align-items:center;gap:var(--space-xl);padding:var(--space-xl) var(--space-xl);border:none}
+.stat-total-card::before{display:none}
+.stat-total-card .stat-icon{background:var(--amber);width:64px;height:64px;border-radius:var(--radius-lg)}
+.stat-total-card .stat-icon .material-icons{font-size:30px;color:var(--navy-deep)}
+.stat-total-card .stat-info h3{font-size:42px;color:white;letter-spacing:-2px}
+.stat-total-card .stat-info p{color:rgba(255,255,255,0.7);font-size:14px}
 
 .form{padding:var(--space-xl)}
 .form-section{margin-bottom:var(--space-xl);padding-bottom:var(--space-xl);border-bottom:1px solid var(--border-light);position:relative}
@@ -503,8 +511,12 @@ function apiCall(action, data) {
    Components (inline)
    =========================================== */
 var Components = (function() {
-  function createStatCard(icon, color, value, label) {
-    return '<div class="stat-card"><div class="stat-icon ' + color + '"><span class="material-icons">' + icon + '</span></div><div class="stat-info"><h3>' + value + '</h3><p>' + label + '</p></div></div>';
+  function createStatCard(icon, color, value, label, subValue) {
+    var subHtml = subValue ? '<div class="stat-sub">' + subValue + '</div>' : '';
+    return '<div class="stat-card"><div class="stat-icon ' + color + '"><span class="material-icons">' + icon + '</span></div><div class="stat-info"><h3>' + value + '</h3><p>' + label + '</p>' + subHtml + '</div></div>';
+  }
+  function createTotalAmountCard(value, label) {
+    return '<div class="stat-card stat-total-card"><div class="stat-icon amber"><span class="material-icons">account_balance</span></div><div class="stat-info"><h3>' + value + '</h3><p>' + label + '</p></div></div>';
   }
   function createStatusBadge(status) {
     var sc = status.toLowerCase().replace(/\s+/g, '-');
@@ -552,7 +564,7 @@ var Components = (function() {
     return h+'</div>';
   }
   function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
-  return { createStatCard:createStatCard, createStatusBadge:createStatusBadge, createRequestRow:createRequestRow, createPagination:createPagination, createItemRow:createItemRow, createDetailSection:createDetailSection, createDetailItem:createDetailItem, createItemsTable:createItemsTable, createWorkflowTimeline:createWorkflowTimeline };
+  return { createStatCard:createStatCard, createTotalAmountCard:createTotalAmountCard, createStatusBadge:createStatusBadge, createRequestRow:createRequestRow, createPagination:createPagination, createItemRow:createItemRow, createDetailSection:createDetailSection, createDetailItem:createDetailItem, createItemsTable:createItemsTable, createWorkflowTimeline:createWorkflowTimeline };
 })();
 
 function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
@@ -831,12 +843,12 @@ function loadStats(){
 }
 function renderStats(s){
   var h=Components.createStatCard('assignment','navy',s.total,'إجمالي الطلبات');
-  h+=Components.createStatCard('fiber_new','amber',s.new,'طلبات جديدة');
-  h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة');
-  h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة');
-  h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة');
-  h+=Components.createStatCard('task_alt','teal',s.completed,'مكتملة');
-  h+=Components.createStatCard('account_balance','navy',s.totalAmount.toFixed(2),'إجمالي المبالغ');
+  h+=Components.createStatCard('fiber_new','amber',s.new,'طلبات جديدة',s.newAmount.toFixed(0)+' ج.م');
+  h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة',s.underReviewAmount.toFixed(0)+' ج.م');
+  h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة',s.approvedAmount.toFixed(0)+' ج.م');
+  h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة',s.rejectedAmount.toFixed(0)+' ج.م');
+  h+=Components.createStatCard('task_alt','teal',s.completed,'مكتملة',s.completedAmount.toFixed(0)+' ج.م');
+  h+=Components.createTotalAmountCard(s.totalAmount.toFixed(0)+' ج.م','إجمالي المبالغ');
   document.getElementById('statsGrid').innerHTML=h;
 }
 

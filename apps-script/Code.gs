@@ -326,15 +326,15 @@ var Database = (function() {
 
   function getDashboardStats() {
     var data = sheets.requests.getDataRange().getValues();
-    var stats = { total:0, new:0, underReview:0, approved:0, rejected:0, completed:0, byType:{}, totalAmount:0 };
+    var stats = { total:0, new:0, underReview:0, approved:0, rejected:0, completed:0, newAmount:0, underReviewAmount:0, approvedAmount:0, rejectedAmount:0, completedAmount:0, totalAmount:0, byType:{} };
     for (var i = 1; i < data.length; i++) {
       stats.total++;
       var s = data[i][11], t = data[i][3], a = parseFloat(data[i][6])||0;
-      if (s===CONFIG.STATUS.NEW) stats.new++;
-      else if (s===CONFIG.STATUS.UNDER_REVIEW) stats.underReview++;
-      else if (s===CONFIG.STATUS.APPROVED) stats.approved++;
-      else if (s===CONFIG.STATUS.REJECTED) stats.rejected++;
-      else if (s===CONFIG.STATUS.COMPLETED) stats.completed++;
+      if (s===CONFIG.STATUS.NEW) { stats.new++; stats.newAmount+=a; }
+      else if (s===CONFIG.STATUS.UNDER_REVIEW) { stats.underReview++; stats.underReviewAmount+=a; }
+      else if (s===CONFIG.STATUS.APPROVED) { stats.approved++; stats.approvedAmount+=a; }
+      else if (s===CONFIG.STATUS.REJECTED) { stats.rejected++; stats.rejectedAmount+=a; }
+      else if (s===CONFIG.STATUS.COMPLETED) { stats.completed++; stats.completedAmount+=a; }
       if (!stats.byType[t]) stats.byType[t]={count:0,amount:0};
       stats.byType[t].count++; stats.byType[t].amount+=a; stats.totalAmount+=a;
     }
