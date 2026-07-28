@@ -337,13 +337,6 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
             <div class="form-group"><label class="form-label" for="monthlyAmount">المبلغ المطلوب</label><div class="input-with-icon"><input type="number" id="monthlyAmount" name="amount" class="form-input" min="0" step="0.01" placeholder="0.00"><span class="input-icon">ج.م</span></div></div>
             <div class="form-group"><label class="form-label" for="deadline">Deadline تسليم الميزانية</label><input type="date" id="deadline" name="deadline" class="form-input"></div>
             <div class="form-group"><label class="form-label" for="transferNumber">رقم التحويل</label><input type="text" id="transferNumber" name="transferNumber" class="form-input" placeholder="إنستا باي / محفظة"></div>
-            <div class="form-group full-width">
-              <label class="form-label">هل تم تبليغ منسق القطاع؟</label>
-              <div class="radio-group horizontal">
-                <label class="radio-card small"><input type="radio" name="notifiedCoordinator" value="true"><span class="radio-custom"></span><span>نعم</span></label>
-                <label class="radio-card small"><input type="radio" name="notifiedCoordinator" value="false" checked><span class="radio-custom"></span><span>لا</span></label>
-              </div>
-            </div>
           </div>
           <div class="table-container">
             <div class="table-header"><h4>بنود الصرف</h4><button type="button" class="btn btn-secondary btn-sm" onclick="addItemRow()"><span class="material-icons">add</span> إضافة بند</button></div>
@@ -674,7 +667,6 @@ function submitRequest() {
     data.amount=getVal('monthlyAmount');
     data.deadline=getVal('deadline');
     data.transferNumber=getVal('transferNumber');
-    data.notifiedCoordinator=(function(){var r=document.getElementsByName('notifiedCoordinator');for(var i=0;i<r.length;i++){if(r[i].checked)return r[i].value==='true';}return false;})();
     data.items=getMonthlyItems();
   }else if(rt==='ميزانية عاجلة'){
     data.submissionDate=getVal('urgentDate');
