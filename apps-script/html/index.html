@@ -839,16 +839,22 @@ function loadDashboard(){
 }
 
 function loadStats(){
-  apiCall('getStats').then(function(r){if(r&&r.success)renderStats(r.data);}).catch(function(){});
+  apiCall('getStats').then(function(r){
+    if(r&&r.success&&r.data) renderStats(r.data);
+    else { document.getElementById('statsGrid').innerHTML='<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:40px">خطأ في تحميل الإحصائيات</p>'; }
+  }).catch(function(e){
+    console.error('loadStats error:',e);
+    document.getElementById('statsGrid').innerHTML='<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;padding:40px">خطأ في الاتصال بالخادم</p>';
+  });
 }
 function renderStats(s){
   var h=Components.createStatCard('assignment','navy',s.total,'إجمالي الطلبات');
-  h+=Components.createStatCard('fiber_new','amber',s.new,'طلبات جديدة',s.newAmount.toFixed(0)+' ج.م');
-  h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة',s.underReviewAmount.toFixed(0)+' ج.م');
-  h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة',s.approvedAmount.toFixed(0)+' ج.م');
-  h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة',s.rejectedAmount.toFixed(0)+' ج.م');
-  h+=Components.createStatCard('task_alt','teal',s.completed,'مكتملة',s.completedAmount.toFixed(0)+' ج.م');
-  h+=Components.createTotalAmountCard(s.totalAmount.toFixed(0)+' ج.م','إجمالي المبالغ');
+  h+=Components.createStatCard('fiber_new','amber',s.new,'طلبات جديدة',(s.newAmount||0).toFixed(0)+' ج.م');
+  h+=Components.createStatCard('pending','purple',s.underReview,'قيد المراجعة',(s.underReviewAmount||0).toFixed(0)+' ج.م');
+  h+=Components.createStatCard('check_circle','green',s.approved,'معتمدة',(s.approvedAmount||0).toFixed(0)+' ج.م');
+  h+=Components.createStatCard('cancel','red',s.rejected,'مرفوضة',(s.rejectedAmount||0).toFixed(0)+' ج.م');
+  h+=Components.createStatCard('task_alt','teal',s.completed,'مكتملة',(s.completedAmount||0).toFixed(0)+' ج.م');
+  h+=Components.createTotalAmountCard((s.totalAmount||0).toFixed(0)+' ج.م','إجمالي المبالغ');
   document.getElementById('statsGrid').innerHTML=h;
 }
 
