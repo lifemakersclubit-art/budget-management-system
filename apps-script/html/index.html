@@ -566,6 +566,7 @@ function esc(t) { if(!t)return''; return String(t).replace(/&/g,'&amp;').replace
    App Logic
    =========================================== */
 function initApp() {
+  if (localStorage.getItem('dashboardUnlocked') === '1') appState.dashboardUnlocked = true;
   var today = new Date().toISOString().split('T')[0];
   var df = document.getElementById('submissionDateDisplay');
   if (df) df.value = today;
@@ -1087,6 +1088,7 @@ function checkDashboardPassword() {
   var err = document.getElementById('passwordError');
   if (input.value === DASHBOARD_PASSWORD) {
     appState.dashboardUnlocked = true;
+    localStorage.setItem('dashboardUnlocked', '1');
     document.getElementById('passwordModal').classList.add('hidden');
     input.value = '';
     err.textContent = '';
