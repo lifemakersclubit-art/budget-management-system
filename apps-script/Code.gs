@@ -19,6 +19,7 @@ var CONFIG = {
     WATCHER_2: 'Operationsitmlm@gmail.com',
     WATCHER_3: 'seif2412002@gmail.com',
     WATCHER_4: 'seif.tamer@lifemakers.org',
+    WATCHER_5: 'Leaguemanagerunielm@gmail.com',
     SUBJECT_PREFIX: '[Budget Request]',
     FROM_NAME: 'Budget Management System'
   },
@@ -455,6 +456,7 @@ var EmailService = (function() {
       try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_2, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
       try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_3, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
       try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_4, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
+      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_5, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
       Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.EMAIL_SENT, 'Email sent to '+CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.ADMIN, '', '');
       return { threadId: threadId, messageId: threadId };
     } catch(e) { Logger.log('Email error: '+e.toString()); throw e; }
@@ -546,6 +548,7 @@ var EmailService = (function() {
       recipients.push(CONFIG.EMAIL.WATCHER_2);
       recipients.push(CONFIG.EMAIL.WATCHER_3);
       recipients.push(CONFIG.EMAIL.WATCHER_4);
+      recipients.push(CONFIG.EMAIL.WATCHER_5);
 
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
@@ -629,6 +632,7 @@ var ReplyService = (function() {
       recipients.push(CONFIG.EMAIL.WATCHER_2);
       recipients.push(CONFIG.EMAIL.WATCHER_3);
       recipients.push(CONFIG.EMAIL.WATCHER_4);
+      recipients.push(CONFIG.EMAIL.WATCHER_5);
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
 
