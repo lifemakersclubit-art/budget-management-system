@@ -16,7 +16,6 @@ var CONFIG = {
   EMAIL: {
     ADMIN: 'Kareem.shair2@gmail.com',
     WATCHER_1: 'Lifemakersclub.it@gmail.com',
-    WATCHER_2: 'Operationsitmlm@gmail.com',
     WATCHER_3: 'seif2412002@gmail.com',
     WATCHER_4: 'seif.tamer@lifemakers.org',
     WATCHER_5: 'Leaguemanagerunielm@gmail.com',
@@ -469,7 +468,7 @@ var EmailService = (function() {
       var htmlBody = buildRequestEmailBody(requestData, requestId);
       var plainBody = buildRequestEmailPlain(requestData, requestId);
       var subject = CONFIG.EMAIL.SUBJECT_PREFIX + ' ' + requestId + ' - ' + requestData.requestType;
-      var recipients = [CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.WATCHER_1, CONFIG.EMAIL.WATCHER_2, CONFIG.EMAIL.WATCHER_3, CONFIG.EMAIL.WATCHER_4, CONFIG.EMAIL.WATCHER_5];
+      var recipients = [CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.WATCHER_1, CONFIG.EMAIL.WATCHER_3, CONFIG.EMAIL.WATCHER_4, CONFIG.EMAIL.WATCHER_5];
       var unique = [];
       recipients.forEach(function(r){ if(r && unique.indexOf(r)===-1) unique.push(r); });
       var thread = GmailApp.sendEmail(unique.join(','), subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail });
@@ -562,7 +561,6 @@ var EmailService = (function() {
       var recipients = [];
       if (requesterEmail) recipients.push(requesterEmail);
       recipients.push(CONFIG.EMAIL.WATCHER_1);
-      recipients.push(CONFIG.EMAIL.WATCHER_2);
       recipients.push(CONFIG.EMAIL.WATCHER_3);
       recipients.push(CONFIG.EMAIL.WATCHER_4);
       recipients.push(CONFIG.EMAIL.WATCHER_5);
@@ -644,7 +642,6 @@ var ReplyService = (function() {
       var recipients = [];
       if (requesterEmail) recipients.push(requesterEmail);
       recipients.push(CONFIG.EMAIL.WATCHER_1);
-      recipients.push(CONFIG.EMAIL.WATCHER_2);
       recipients.push(CONFIG.EMAIL.WATCHER_3);
       recipients.push(CONFIG.EMAIL.WATCHER_4);
       recipients.push(CONFIG.EMAIL.WATCHER_5);
