@@ -838,11 +838,11 @@ function doPost(e) {
         return Utils.createSuccessResponse({ token: token });
 
       case 'submitRequest':
-        if (!Validation.validateCSRF(data.csrfToken)) return Utils.createSuccessResponse(null, 'Invalid CSRF token');
-        if (!Validation.checkRateLimit(data.requesterEmail)) return Utils.createSuccessResponse(null, 'Too many requests');
-        if (Database.checkDuplicate(data.requesterEmail, data.requestType, new Date())) return Utils.createSuccessResponse(null, 'Duplicate request');
+        if (!Validation.validateCSRF(data.csrfToken)) return Utils.createErrorResponse('Invalid CSRF token');
+        if (!Validation.checkRateLimit(data.requesterEmail)) return Utils.createErrorResponse('Too many requests');
+        if (Database.checkDuplicate(data.requesterEmail, data.requestType, new Date())) return Utils.createErrorResponse('Duplicate request');
         var v = Validation.validateRequest(data);
-        if (!v.isValid) return Utils.createSuccessResponse(null, v.errors.join(', '));
+        if (!v.isValid) return Utils.createErrorResponse(v.errors.join(', '));
         var result = Database.saveRequest(v.data);
         try { var email = EmailService.sendRequestEmail(v.data, result.requestId); Database.updateEmailInfo(result.requestId, email.threadId, email.messageId); } catch(em){ Logger.log('Email err: '+em); }
         var newToken = Validation.generateCSRFToken();

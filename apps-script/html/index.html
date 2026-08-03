@@ -503,6 +503,24 @@ function apiCall(action, data) {
     });
 }
 
+function apiCallPost(action, data) {
+  var payload = JSON.stringify({ action: action, data: data || {} });
+  console.log('POST [' + action + '] payload size:', payload.length, 'chars');
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload })
+    .then(function(response) {
+      console.log('POST [' + action + '] HTTP status:', response.status);
+      return response.text();
+    })
+    .then(function(text) {
+      console.log('POST [' + action + '] response (first 500 chars):', text.substring(0, 500));
+      try { return JSON.parse(text); }
+      catch(e) {
+        console.error('JSON parse error for [' + action + ']:', e, 'Raw:', text.substring(0, 200));
+        return { success: false, error: 'Invalid response from server: ' + text.substring(0, 100) };
+      }
+    });
+}
+
 /* ===========================================
    Components (inline)
    =========================================== */
@@ -710,7 +728,7 @@ function submitRequest() {
   showProgress(); setBtnLoading(submitBtn, true);
   console.log('Sending request to:',API_URL+'?action=submitRequest&...');
 
-  apiCall('submitRequest', data)
+  apiCallPost('submitRequest', data)
     .then(function(r){
       console.log('Raw API response:',r);
       var result=(typeof r==='string')?JSON.parse(r):r;
