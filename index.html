@@ -521,6 +521,21 @@ function apiCallPost(action, data) {
     });
 }
 
+function submitRequestData(data) {
+  return apiCallPost('submitRequest', data)
+    .then(function(r) {
+      if (r && r.success === false && r.error && r.error.indexOf('Invalid response') === 0) {
+        console.warn('POST endpoint not ready, falling back to GET submitRequest');
+        return apiCall('submitRequest', data);
+      }
+      return r;
+    })
+    .catch(function(err) {
+      console.warn('POST failed (' + err + '), falling back to GET submitRequest');
+      return apiCall('submitRequest', data);
+    });
+}
+
 /* ===========================================
    Components (inline)
    =========================================== */
@@ -726,9 +741,9 @@ function submitRequest() {
 
   var submitBtn = document.getElementById('submitBtn');
   showProgress(); setBtnLoading(submitBtn, true);
-  console.log('Sending request to:',API_URL+'?action=submitRequest&...');
+  console.log('Sending request via POST (with GET fallback)...');
 
-  apiCallPost('submitRequest', data)
+  submitRequestData(data)
     .then(function(r){
       console.log('Raw API response:',r);
       var result=(typeof r==='string')?JSON.parse(r):r;
