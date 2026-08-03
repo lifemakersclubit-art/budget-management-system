@@ -121,6 +121,13 @@ var Database = (function() {
   var sheets = {};
   var cache = CacheService.getScriptCache();
 
+  function getCacheVersion() {
+    return PropertiesService.getScriptProperties().getProperty('data_version') || '0';
+  }
+  function bumpCacheVersion() {
+    PropertiesService.getScriptProperties().setProperty('data_version', String(new Date().getTime()));
+  }
+
   function init() {
     try {
       spreadsheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
@@ -188,6 +195,7 @@ var Database = (function() {
       var extras = JSON.stringify({ deadline: data.deadline||'', notifiedCoordinator: data.notifiedCoordinator||false, transferNumber: data.transferNumber||'', activityName: data.activityName||'', followUpEmail: data.followUpEmail||'', purpose: data.purpose||'', committee: data.committee||'', technicalNeed: data.technicalNeed||'', executionDate: data.executionDate||'', submissionDate: data.submissionDate||'', numberOfPeople: data.numberOfPeople||'', reason: data.reason||'' });
       var row = [requestId, uuid, ts, data.requestType, data.sector, data.governorate, data.amount||0, data.description||'', data.requesterName, data.requesterEmail, data.requesterPhone, CONFIG.STATUS.NEW, '', '', data.items?data.items.length:0, data.deadline||'', data.notifiedAdmin||false, data.notes||'', extras, ts, ts];
       sheets.requests.appendRow(row);
+      bumpCacheVersion();
       if (data.items && data.items.length > 0) saveItems(requestId, data.items);
       logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.CREATED, 'Request created by ' + data.requesterName, data.requesterEmail, '', CONFIG.STATUS.NEW);
       return { requestId: requestId, uuid: uuid, timestamp: ts };
@@ -225,6 +233,9 @@ var Database = (function() {
   function getAllRequests(options) {
     options = options || {};
     var page = options.page || 1, limit = options.limit || 50, status = options.status || '', search = options.search || '', type = options.type || '';
+    var cacheKey = 'reqs_' + getCacheVersion() + '_' + page + '_' + limit + '_' + status + '_' + type + '_' + search.toLowerCase();
+    var cached = cache.get(cacheKey);
+    if (cached) return JSON.parse(cached);
     var data = sheets.requests.getDataRange().getValues();
     var headers = data[0], results = [];
     for (var i = 1; i < data.length; i++) {
@@ -237,7 +248,9 @@ var Database = (function() {
     }
     results.sort(function(a,b) { return new Date(b['Timestamp']) - new Date(a['Timestamp']); });
     var total = results.length, start = (page-1)*limit;
-    return { data: results.slice(start, start+limit), total: total, page: page, limit: limit, totalPages: Math.ceil(total/limit) };
+    var result = { data: results.slice(start, start+limit), total: total, page: page, limit: limit, totalPages: Math.ceil(total/limit) };
+    cache.put(cacheKey, JSON.stringify(result), 60);
+    return result;
   }
 
   function updateRequestStatus(requestId, newStatus, actorEmail) {
@@ -252,6 +265,7 @@ var Database = (function() {
           sheets.requests.getRange(i+1, si+1).setValue(newStatus);
           sheets.requests.getRange(i+1, ui+1).setValue(new Date());
           cache.remove('req_' + requestId);
+          bumpCacheVersion();
           logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.STATUS_CHANGED, 'Status: '+old+' → '+newStatus, actorEmail, old, newStatus);
           return true;
         }
@@ -294,6 +308,7 @@ var Database = (function() {
       return null;
     }
     sheets.replies.appendRow([generateUUID(), data.requestId, threadId, messageId, fromEmail, subject, body, new Date(), isAdmin]);
+    bumpCacheVersion();
     logWorkflow(data.requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply from ' + fromEmail, fromEmail, '', '');
     return true;
   }
@@ -328,6 +343,9 @@ var Database = (function() {
   }
 
   function getDashboardStats() {
+    var cacheKey = 'stats_' + getCacheVersion();
+    var cached = cache.get(cacheKey);
+    if (cached) return JSON.parse(cached);
     var data = sheets.requests.getDataRange().getValues();
     var stats = { total:0, new:0, underReview:0, approved:0, rejected:0, completed:0, newAmount:0, underReviewAmount:0, approvedAmount:0, rejectedAmount:0, completedAmount:0, totalAmount:0, byType:{} };
     for (var i = 1; i < data.length; i++) {
@@ -341,6 +359,7 @@ var Database = (function() {
       if (!stats.byType[t]) stats.byType[t]={count:0,amount:0};
       stats.byType[t].count++; stats.byType[t].amount+=a; stats.totalAmount+=a;
     }
+    cache.put(cacheKey, JSON.stringify(stats), 60);
     return stats;
   }
 
@@ -450,14 +469,12 @@ var EmailService = (function() {
       var htmlBody = buildRequestEmailBody(requestData, requestId);
       var plainBody = buildRequestEmailPlain(requestData, requestId);
       var subject = CONFIG.EMAIL.SUBJECT_PREFIX + ' ' + requestId + ' - ' + requestData.requestType;
-      var adminThread = GmailApp.sendEmail(CONFIG.EMAIL.ADMIN, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail });
-      var threadId = adminThread.getId();
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_1, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_2, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_3, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_4, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      try { GmailApp.sendEmail(CONFIG.EMAIL.WATCHER_5, subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail }); } catch(e){}
-      Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.EMAIL_SENT, 'Email sent to '+CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.ADMIN, '', '');
+      var recipients = [CONFIG.EMAIL.ADMIN, CONFIG.EMAIL.WATCHER_1, CONFIG.EMAIL.WATCHER_2, CONFIG.EMAIL.WATCHER_3, CONFIG.EMAIL.WATCHER_4, CONFIG.EMAIL.WATCHER_5];
+      var unique = [];
+      recipients.forEach(function(r){ if(r && unique.indexOf(r)===-1) unique.push(r); });
+      var thread = GmailApp.sendEmail(unique.join(','), subject, plainBody, { htmlBody: htmlBody, name: CONFIG.EMAIL.FROM_NAME, replyTo: requestData.requesterEmail });
+      var threadId = thread.getId();
+      Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.EMAIL_SENT, 'Email sent to '+unique.join(', '), CONFIG.EMAIL.ADMIN, '', '');
       return { threadId: threadId, messageId: threadId };
     } catch(e) { Logger.log('Email error: '+e.toString()); throw e; }
   }
@@ -553,9 +570,7 @@ var EmailService = (function() {
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
 
-      uniqueRecipients.forEach(function(email) {
-        try { GmailApp.sendEmail(email, subject, plainBody, opts); } catch(e) { Logger.log('Reply email to '+email+' error: '+e.toString()); }
-      });
+      try { GmailApp.sendEmail(uniqueRecipients.join(','), subject, plainBody, opts); } catch(e) { Logger.log('Reply email error: '+e.toString()); }
 
       Database.logWorkflow(requestId, CONFIG.WORKFLOW_ACTIONS.REPLY_RECEIVED, 'Reply sent to: '+uniqueRecipients.join(', '), CONFIG.EMAIL.ADMIN, replyBody, '');
       return true;
@@ -636,9 +651,7 @@ var ReplyService = (function() {
       var uniqueRecipients = [];
       recipients.forEach(function(r){ if(r && uniqueRecipients.indexOf(r)===-1) uniqueRecipients.push(r); });
 
-      uniqueRecipients.forEach(function(email) {
-        try { GmailApp.sendEmail(email, subject, plainBody, opts); } catch(e) { Logger.log('Status email to '+email+' error: '+e.toString()); }
-      });
+      try { GmailApp.sendEmail(uniqueRecipients.join(','), subject, plainBody, opts); } catch(e) { Logger.log('Status email error: '+e.toString()); }
     } catch(e) { Logger.log('Status update email error: '+e.toString()); }
   }
 

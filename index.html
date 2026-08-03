@@ -484,7 +484,10 @@ function apiCall(action, data) {
   }
   var url = API_URL + '?' + params;
   console.log('API call [' + action + '] URL length:', url.length);
-  if (url.length > 8000) console.warn('URL is very long! May cause issues.');
+  if (url.length > 7000) {
+    console.error('URL too long for [' + action + ']:', url.length);
+    return Promise.resolve({ success: false, error: 'البيانات كبيرة جداً. قلل عدد البنود أو طول النصوص.' });
+  }
   return fetch(url, { method: 'GET' })
     .then(function(response) {
       console.log('API [' + action + '] HTTP status:', response.status);
@@ -906,17 +909,6 @@ function renderRequestDetails(req,rid){
 }
 
 function closeModal(){document.getElementById('requestModal').classList.remove('active');}
-
-function updateRequestStatus(rid){
-  var ns=document.getElementById('newStatus').value;
-  var btn = document.querySelector('.status-update-form .btn');
-  showProgress(); setBtnLoading(btn, true);
-  apiCall('updateStatus',{requestId:rid,newStatus:ns,csrfToken:appState.csrfToken}).then(function(r){
-    hideProgress(); setBtnLoading(btn, false);
-    if(r&&r.success){showToast('تم تحديث الحالة بنجاح','success');if(r.data&&r.data.csrfToken){appState.csrfToken=r.data.csrfToken;document.getElementById('csrfToken').value=r.data.csrfToken;}loadRequests();closeModal();}
-    else{showToast('خطأ: '+(r.error||r.message),'error');}
-  }).catch(function(){hideProgress();setBtnLoading(btn, false);showToast('خطأ في الاتصال','error');});
-}
 
 function sendReplyWithStatus(rid){
   var rb=document.getElementById('replyBody').value;
