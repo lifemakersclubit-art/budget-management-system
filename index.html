@@ -630,6 +630,12 @@ function initApp() {
   var df = document.getElementById('submissionDateDisplay');
   if (df) df.value = today;
 
+  if (location.search.indexOf('closed=1') !== -1 || location.hash === '#previewClosed') {
+    appState.config = { formOpen: false };
+    showPage('closed');
+    return;
+  }
+
   showLoading();
   var safety = setTimeout(function(){ if(!appState.initialized) applyFallback(); }, 8000);
 
