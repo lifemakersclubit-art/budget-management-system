@@ -67,6 +67,7 @@ var CONFIG = {
     ACCENT: '#e8f0fe'
   },
   CACHE_DURATION: 300,
+  FORM_OPEN: true,
   RATE_LIMIT: {
     MAX_REQUESTS: 10,
     WINDOW_SECONDS: 60
@@ -677,7 +678,8 @@ function doGet(e) {
           universities: CONFIG.UNIVERSITIES,
           committees: CONFIG.COMMITTEES,
           expenseItems: CONFIG.EXPENSE_ITEMS,
-          colors: CONFIG.COLORS
+          colors: CONFIG.COLORS,
+          formOpen: CONFIG.FORM_OPEN
         };
         return Utils.createSuccessResponse(config);
 
@@ -718,6 +720,7 @@ function doGet(e) {
         return Utils.createSuccessResponse(replies);
 
       case 'submitRequest':
+        if (!CONFIG.FORM_OPEN) return Utils.createErrorResponse('تم إغلاق الاستمارة حالياً. نرجو المحاولة لاحقاً.');
         if (!Validation.validateCSRF(p.csrfToken)) return Utils.createErrorResponse('Invalid CSRF token');
         if (!Validation.checkRateLimit(p.requesterEmail)) return Utils.createErrorResponse('Too many requests');
         if (Database.checkDuplicate(p.requesterEmail, p.requestType, new Date())) return Utils.createErrorResponse('Duplicate request');
@@ -820,7 +823,8 @@ function doPost(e) {
           universities: CONFIG.UNIVERSITIES,
           committees: CONFIG.COMMITTEES,
           expenseItems: CONFIG.EXPENSE_ITEMS,
-          colors: CONFIG.COLORS
+          colors: CONFIG.COLORS,
+          formOpen: CONFIG.FORM_OPEN
         };
         return Utils.createSuccessResponse(config);
 
@@ -835,6 +839,7 @@ function doPost(e) {
         return Utils.createSuccessResponse({ token: token });
 
       case 'submitRequest':
+        if (!CONFIG.FORM_OPEN) return Utils.createErrorResponse('تم إغلاق الاستمارة حالياً. نرجو المحاولة لاحقاً.');
         if (!Validation.validateCSRF(data.csrfToken)) return Utils.createErrorResponse('Invalid CSRF token');
         if (!Validation.checkRateLimit(data.requesterEmail)) return Utils.createErrorResponse('Too many requests');
         if (Database.checkDuplicate(data.requesterEmail, data.requestType, new Date())) return Utils.createErrorResponse('Duplicate request');

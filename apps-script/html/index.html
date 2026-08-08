@@ -170,6 +170,16 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none !important}
 .form-actions{display:flex;justify-content:center;padding-top:var(--space-xl)}
 
+.closed-wrap{min-height:65vh;display:flex;align-items:center;justify-content:center}
+.closed-card{background:var(--white);border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);padding:var(--space-2xl) var(--space-xl);text-align:center;max-width:520px;width:100%;border:1px solid var(--border-light);position:relative;overflow:hidden}
+.closed-card::before{content:'';position:absolute;top:0;right:0;left:0;height:3px;background:linear-gradient(90deg,var(--navy),var(--amber))}
+.closed-icon{width:100px;height:100px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;animation:pulse 2s var(--ease-out) infinite}
+.closed-icon .material-icons{font-size:50px;color:var(--danger)}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+.closed-card h2{font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--navy-deep);margin-bottom:12px;letter-spacing:-0.5px}
+.closed-card p{color:var(--text-secondary);font-size:15px;line-height:1.9}
+.closed-note{color:var(--text-muted);font-size:13px;margin-top:20px;padding-top:20px;border-top:1px dashed var(--border-medium)}
+
 .status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:var(--radius-pill);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.2px}
 .status-badge.new{background:var(--info-bg);color:var(--info)}.status-badge.under-review{background:var(--warning-bg);color:var(--warning)}.status-badge.approved{background:var(--success-bg);color:var(--success)}.status-badge.rejected{background:var(--danger-bg);color:var(--danger)}.status-badge.completed{background:var(--success-bg);color:var(--success)}
 .status-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
@@ -399,6 +409,18 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
     </div></div>
   </main>
 
+  <main id="closedPage" class="page">
+    <div class="container closed-wrap">
+      <div class="closed-card">
+        <div class="closed-icon"><span class="material-icons">event_busy</span></div>
+        <h2>تم إغلاق الاستمارة</h2>
+        <p>نعتذر، تم إغلاق الاستمارة حالياً ولا يمكن إرسال طلبات جديدة.</p>
+        <p>في حال وجود أي استفسار يرجى التواصل مع إدارة النظام.</p>
+        <div class="closed-note">شكراً لتفهمكم</div>
+      </div>
+    </div>
+  </main>
+
   <main id="dashboardPage" class="page">
     <div class="container">
       <div style="margin-bottom:var(--space-lg)"><button class="btn btn-secondary" onclick="showPage('form')"><span class="material-icons">arrow_forward</span> العودة لطلب جديد</button></div>
@@ -465,7 +487,8 @@ var FALLBACK_CONFIG = {
   universities: ['فريق مركزي','جامعة القاهرة','جامعة المنصورة','جامعة السويس','جامعة قناة السويس','جامعة بنها','جامعة الأزهر بالقاهرة','جامعة MTI','جامعة المنيا','جامعة بني سويف','جامعة أسيوط','جامعة أسوان','جامعة قنا','جامعة سوهاج','جامعة المعهد العاشر فرع مطروح','جامعة المعهد العاشر','جامعة المنوفية','جامعة طنطا','جامعة طيبة التكنولوجية','جامعة Sphinx','جامعة الأقصر الحكومية','جامعة الأقصر الأهلية','جامعة سيناء','جامعة العريش','جامعة EST','جامعة مطروح','جامعة الوادى الجديد','جامعة تفهنا فرع الأزهر','جامعة الأقصر فرع الأزهر','معهد القاهرة العالى الجديد','جامعة اللوتس','المعهد التكنولوچى العالى للعلوم التطبيقية','المعهد العالى للخدمة الإجتماعية باسوان','جامعة الأهرام الكندية','المعهد العالي للهندسة بالأقصر','جامعة المنوفية الأهلية','جامعة المنصورة الاهلية','جامعة الزقازيق','جامعة ميريت'],
   committees: ['Media','HR','PR','Training','Activation','IT','Attraction'],
   expenseItems: ['إيفنت','مطبوعات','جيفتات','استقبال','لوجستيك','قاعات','Other'],
-  colors: {}
+  colors: {},
+  formOpen: true
 };
 
 /* ===========================================
@@ -613,7 +636,7 @@ function initApp() {
   loadCSRFToken();
 
   apiCall('getConfig')
-    .then(function(r){ clearTimeout(safety); if(r&&r.success){ appState.config=r.data; populateDropdowns(r.data); appState.initialized=true; hideLoading(); } else { applyFallback(); } })
+    .then(function(r){ clearTimeout(safety); if(r&&r.success){ appState.config=r.data; populateDropdowns(r.data); appState.initialized=true; hideLoading(); if(isFormClosed()) showPage('closed'); } else { applyFallback(); } })
     .catch(function(){ clearTimeout(safety); applyFallback(); });
 }
 
@@ -678,6 +701,12 @@ function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px
 
 function submitRequest() {
   console.log('=== submitRequest START ===');
+
+  if(isFormClosed()){
+    showToast('تم إغلاق الاستمارة ولا يمكن إرسال طلبات جديدة','error');
+    showPage('closed');
+    return;
+  }
 
   var rt='';
   var radios=document.getElementsByName('requestType');
@@ -843,6 +872,10 @@ function clearAllFieldErrors(){
   document.querySelectorAll('.field-error-msg').forEach(function(el){el.remove();});
 }
 
+function isFormClosed(){
+  return !!(appState.config && appState.config.formOpen === false);
+}
+
 function showPage(p){
   if (p === 'dashboard' && !appState.dashboardUnlocked) {
     document.getElementById('passwordModal').classList.remove('hidden');
@@ -853,10 +886,13 @@ function showPage(p){
     document.querySelector('[data-page="form"]').classList.add('active');
     return;
   }
+  if (p === 'form' && isFormClosed()) p = 'closed';
   document.querySelectorAll('.page').forEach(function(pg){pg.classList.remove('active');});
   document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById(p+'Page').classList.add('active');
-  document.querySelector('[data-page="'+p+'"]').classList.add('active');
+  var navBtn = document.querySelector('[data-page="'+p+'"]');
+  if (navBtn) navBtn.classList.add('active');
+  else document.querySelector('[data-page="form"]').classList.add('active');
   appState.currentPage=p;
   if(p==='dashboard')loadDashboard();
 }
