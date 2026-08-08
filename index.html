@@ -215,6 +215,13 @@ body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;backg
 .detail-label{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}
 .detail-value{font-size:14px;color:var(--text-primary);font-weight:500}
 
+.modal-amount-banner{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;padding:20px 24px;border-radius:var(--radius-lg);margin-bottom:var(--space-lg);box-shadow:var(--shadow-md);position:relative;overflow:hidden}
+.modal-amount-banner::after{content:'';position:absolute;top:-40px;left:-40px;width:140px;height:140px;background:var(--amber);opacity:0.12;border-radius:50%}
+.modal-amount-banner .material-icons{font-size:42px;opacity:.9;position:relative;z-index:1}
+.modal-amount-label{font-size:13px;opacity:.8;margin-bottom:2px}
+.modal-amount-value{font-family:var(--font-display);font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1.2}
+.modal-amount-note{font-size:12px;opacity:.7;margin-top:2px}
+
 .status-update-form{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .status-update-form .form-select{flex:1;min-width:200px}
 
@@ -598,9 +605,9 @@ var Components = (function() {
   function createDetailItem(label, value) { return '<div class="detail-item"><span class="detail-label">'+label+'</span><span class="detail-value">'+esc(value||'غير محدد')+'</span></div>'; }
   function createItemsTable(items) {
     if (!items||items.length===0) return '<p style="color:var(--text-secondary)">لا توجد بنود</p>';
-    var h='<table class="data-table"><thead><tr><th>البند</th><th>الوصف</th><th>التكلفة</th></tr></thead><tbody>', total=0;
-    items.forEach(function(i){ var c=parseFloat(i['Cost']||i.cost||0); total+=c; h+='<tr><td>'+esc(i['Category']||i.category||'')+'</td><td>'+esc(i['Description']||i.description||'')+'</td><td>'+c.toFixed(2)+' ج.م</td></tr>'; });
-    h+='</tbody><tfoot><tr><td colspan="2"><strong>الإجمالي</strong></td><td><strong>'+total.toFixed(2)+' ج.م</strong></td></tr></tfoot></table>';
+    var h='<table class="data-table"><thead><tr><th>البند</th><th>الوصف</th><th>الكمية</th><th>التكلفة</th><th>الإجمالي</th></tr></thead><tbody>', total=0;
+    items.forEach(function(i){ var c=parseFloat(i['Cost']||i.cost||0); var q=parseInt(i['Quantity']||i.quantity||1); var line=c*q; total+=line; h+='<tr><td>'+esc(i['Category']||i.category||'')+'</td><td>'+esc(i['Description']||i.description||'')+'</td><td>'+q+'</td><td>'+c.toFixed(2)+' ج.م</td><td>'+line.toFixed(2)+' ج.م</td></tr>'; });
+    h+='</tbody><tfoot><tr><td colspan="4"><strong>الإجمالي</strong></td><td><strong>'+total.toFixed(2)+' ج.م</strong></td></tr></tfoot></table>';
     return h;
   }
   function createWorkflowTimeline(wf) {
@@ -960,10 +967,28 @@ function renderRequestDetails(req,rid){
   var statusLabels={'New':'جديد','Under Review':'قيد المراجعة','Approved':'معتمد','Rejected':'مرفوض','Completed':'مكتمل'};
   var statusColors={'New':'#3498DB','Under Review':'#F39C12','Approved':'#2ECC71','Rejected':'#E74C3C','Completed':'#2ECC71'};
 
-  var h=Components.createDetailSection('البيانات الأساسية',
+  var extras={};
+  try{extras=JSON.parse(req['Extra Data']||'{}');}catch(e){}
+
+  var amount=parseFloat(req['Amount']||extras.amount||0)||0;
+  var itemsCount=parseInt(req['Total Items']||0)||0;
+  var h='';
+  if(amount>0||itemsCount>0){
+    h+='<div class="modal-amount-banner"><div><div class="modal-amount-label">إجمالي المبلغ المطلوب</div><div class="modal-amount-value">'+amount.toFixed(2)+' ج.م</div><div class="modal-amount-note">'+itemsCount+' بند</div></div><span class="material-icons">payments</span></div>';
+  }
+
+  h+=Components.createDetailSection('البيانات الأساسية',
     Components.createDetailItem('رقم الطلب',rid)+Components.createDetailItem('مقدم الطلب',req['Requester Name'])+Components.createDetailItem('القطاع',req['Sector'])+Components.createDetailItem('المحافظة',req['Governorate'])+Components.createDetailItem('نوع الطلب',req['Request Type'])+
     '<div class="detail-item"><span class="detail-label">الحالة الحالية</span><span class="detail-value"><span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;color:white;background:'+(statusColors[currentStatus]||'#3498DB')+'">'+(statusLabels[currentStatus]||currentStatus)+'</span></span></div>'+
     Components.createDetailItem('الإيميل',req['Requester Email'])+Components.createDetailItem('رقم الهاتف',req['Requester Phone'])+Components.createDetailItem('الملاحظات',req['Notes']));
+
+  var moneyDetails='';
+  if(req['Deadline']) moneyDetails+=Components.createDetailItem('موعد التسليم',req['Deadline']);
+  if(extras.activityName) moneyDetails+=Components.createDetailItem('اسم النشاط',extras.activityName);
+  if(extras.numberOfPeople) moneyDetails+=Components.createDetailItem('عدد الأفراد',extras.numberOfPeople);
+  if(extras.transferNumber) moneyDetails+=Components.createDetailItem('رقم التحويل',extras.transferNumber);
+  if(extras.purpose) moneyDetails+=Components.createDetailItem('الغرض',extras.purpose);
+  if(moneyDetails) h+=Components.createDetailSection('المصاريف',moneyDetails);
 
   h+='<div id="modalItemsSection"><p style="color:var(--text-muted)">جاري تحميل البنود...</p></div>';
   h+='<div id="modalWorkflowSection"><p style="color:var(--text-muted)">جاري تحميل سجل العمليات...</p></div>';
